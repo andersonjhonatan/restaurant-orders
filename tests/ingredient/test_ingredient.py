@@ -3,7 +3,7 @@ from src.models.ingredient import Ingredient, Restriction  # noqa: F401, E261, E
 
 # Req 1
 def test_ingredient():
-    resultLasanha= Ingredient('massa de lasanha')
+    resultLasanha = Ingredient('massa de lasanha')
 
     assert resultLasanha.name == 'massa de lasanha'
     assert resultLasanha == Ingredient('massa de lasanha')
