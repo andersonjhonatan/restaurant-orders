@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#2d4910" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Painel de pedidos | Sabor da Casa</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/admin.css" />
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <a class="brand" href="/">
+      <img src="/brand/logo" alt="Sabor da Casa" />
+      <span><strong>Sabor da Casa</strong><small>Painel da Vanuza</small></span>
+    </a>
+    <a class="button button--ghost" href="/">Ver cardápio</a>
+  </header>
+
+  <main class="admin-shell">
+    <section id="loginCard" class="admin-login">
+      <span class="eyebrow">Área administrativa</span>
+      <h1>Pedidos do Sabor da Casa</h1>
+      <p>Informe o token administrativo para visualizar e atualizar os pedidos.</p>
+      <form id="tokenForm">
+        <label class="form-field">Token administrativo
+          <input id="adminToken" type="password" autocomplete="current-password" required placeholder="Digite o token" />
+        </label>
+        <button class="button button--primary button--full" type="submit">Entrar no painel</button>
+      </form>
+      <div id="loginError" class="form-error" hidden></div>
+    </section>
+
+    <section id="dashboard" class="dashboard" hidden>
+      <div class="dashboard-heading">
+        <div>
+          <span class="eyebrow">Gestão de pedidos</span>
+          <h1>Olá, Vanuza 👋</h1>
+          <p>Acompanhe os pedidos e altere o andamento de cada um.</p>
+        </div>
+        <div class="dashboard-actions">
+          <button id="refreshOrders" class="button button--ghost" type="button">Atualizar</button>
+          <button id="logoutButton" class="button button--ghost" type="button">Sair</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <article><small>Total</small><strong id="statTotal">0</strong></article>
+        <article><small>Novos</small><strong id="statNew">0</strong></article>
+        <article><small>Em preparo</small><strong id="statPreparing">0</strong></article>
+        <article><small>Concluídos</small><strong id="statDone">0</strong></article>
+      </div>
+
+      <div class="orders-toolbar">
+        <label>
+          <span>Status</span>
+          <select id="statusFilter">
+            <option value="">Todos</option>
+            <option value="Novo">Novo</option>
+            <option value="Confirmado">Confirmado</option>
+            <option value="Em preparo">Em preparo</option>
+            <option value="Saiu para entrega">Saiu para entrega</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </label>
+        <span id="lastUpdated" class="last-updated"></span>
+      </div>
+
+      <div id="ordersLoading" class="menu-loading" hidden>Carregando pedidos...</div>
+      <div id="ordersList" class="orders-list"></div>
+      <div id="ordersEmpty" class="menu-empty" hidden>Nenhum pedido encontrado.</div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/admin.js" defer></script>
+</body>
+</html>
