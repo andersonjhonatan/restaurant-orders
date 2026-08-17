@@ -19,8 +19,12 @@ def restriction_map():
     return {
         "queijo mussarela": {Restriction.LACTOSE, Restriction.ANIMAL_DERIVED},
         "farinha": {Restriction.GLUTEN},
+        "farinha de trigo": {Restriction.GLUTEN},
         "bacon": {Restriction.ANIMAL_MEAT, Restriction.ANIMAL_DERIVED},
+        "linguiça": {Restriction.ANIMAL_MEAT, Restriction.ANIMAL_DERIVED},
+        "carne de sol": {Restriction.ANIMAL_MEAT, Restriction.ANIMAL_DERIVED},
         "manteiga": {Restriction.LACTOSE, Restriction.ANIMAL_DERIVED},
+        "requeijão": {Restriction.LACTOSE, Restriction.ANIMAL_DERIVED},
         "caldo de carne": {Restriction.ANIMAL_DERIVED},
         "camarão": {
             Restriction.ANIMAL_MEAT,
