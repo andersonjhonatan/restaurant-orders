@@ -28,6 +28,7 @@ ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 class OrderItemInput(BaseModel):
     dish_name: str
     quantity: int = Field(default=1, ge=1, le=20)
+    option: Optional[str] = None
 
 
 class OrderInput(BaseModel):
@@ -37,6 +38,8 @@ class OrderInput(BaseModel):
     address: str = ""
     payment_method: str = "Pix"
     notes: str = ""
+    requested_date: str = ""
+    requested_time: str = ""
     items: List[OrderItemInput]
 
 
@@ -47,9 +50,9 @@ class StatusInput(BaseModel):
 app = FastAPI(
     title=RESTAURANT_NAME,
     description=(
-        "Sistema de cardápio e pedidos do Sabor da Casa, administrado por Vanuza."
+        "Sistema de cardápio, encomendas e pedidos do Sabor da Casa, administrado por Vanuza."
     ),
-    version="2.1.0",
+    version="2.2.0",
     contact={"name": OWNER_NAME, "url": WHATSAPP_URL},
 )
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -87,8 +90,9 @@ def build_whatsapp_message(order: dict) -> str:
 
     lines.extend(["", "Itens:"])
     for item in order["items"]:
+        option = f" — {item['option_label']}" if item.get("option_label") else ""
         lines.append(
-            f"- {item['quantity']}x {item['dish_name']} "
+            f"- {item['quantity']}x {item.get('display_name', item['dish_name'])}{option} "
             f"(R$ {item['subtotal']:.2f})"
         )
 
@@ -101,7 +105,7 @@ def build_whatsapp_message(order: dict) -> str:
     )
 
     if order.get("notes"):
-        lines.append(f"Observação: {order['notes']}")
+        lines.extend(["", f"Observação: {order['notes']}"])
 
     return "\n".join(lines)
 
@@ -178,6 +182,8 @@ def create_order(payload: OrderInput):
     address = payload.address.strip()
     payment_method = payload.payment_method.strip()
     notes = payload.notes.strip()
+    requested_date = payload.requested_date.strip()
+    requested_time = payload.requested_time.strip()
 
     if len(customer_name) < 2:
         raise HTTPException(status_code=422, detail="Informe seu nome.")
@@ -195,6 +201,7 @@ def create_order(payload: OrderInput):
     }
     normalized_items = []
     total = 0.0
+    has_preorder = False
 
     for requested in payload.items:
         dish = available_menu.get(requested.dish_name)
@@ -204,17 +211,57 @@ def create_order(payload: OrderInput):
                 detail=f"O prato '{requested.dish_name}' não está disponível no momento.",
             )
 
-        unit_price = float(dish["price"])
+        options = dish.get("options") or []
+        selected_option = None
+        if requested.option:
+            selected_option = next(
+                (option for option in options if option["id"] == requested.option),
+                None,
+            )
+            if selected_option is None:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Escolha de tamanho inválida para {dish['display_name']}.",
+                )
+        elif options:
+            selected_option = options[0]
+
+        unit_price = float(
+            selected_option["price"] if selected_option else dish["price"]
+        )
         subtotal = round(unit_price * requested.quantity, 2)
         total += subtotal
+        order_type = dish.get("order_type", "Hoje")
+        has_preorder = has_preorder or order_type == "Encomenda"
+
         normalized_items.append(
             {
                 "dish_name": dish["dish_name"],
+                "display_name": dish.get("display_name", dish["dish_name"]),
+                "option": selected_option["id"] if selected_option else "",
+                "option_label": selected_option["label"] if selected_option else "",
+                "serves": selected_option.get("serves", "") if selected_option else "",
+                "order_type": order_type,
                 "quantity": requested.quantity,
                 "unit_price": unit_price,
                 "subtotal": subtotal,
             }
         )
+
+    if has_preorder and not requested_date:
+        raise HTTPException(
+            status_code=422,
+            detail="Escolha a data desejada para a encomenda.",
+        )
+
+    note_parts = []
+    if has_preorder:
+        schedule = f"Encomenda para {requested_date}"
+        if requested_time:
+            schedule += f" às {requested_time}"
+        note_parts.append(schedule)
+    if notes:
+        note_parts.append(notes[:200])
 
     order = order_store.create_order(
         {
@@ -223,7 +270,7 @@ def create_order(payload: OrderInput):
             "delivery_method": delivery_method,
             "address": address if delivery_method == "Entrega" else "",
             "payment_method": payment_method,
-            "notes": notes[:240],
+            "notes": " | ".join(note_parts)[:240],
             "items": normalized_items,
             "total": round(total, 2),
         }
