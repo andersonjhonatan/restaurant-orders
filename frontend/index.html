@@ -15,6 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/menu-upgrade.css" />
 </head>
 <body>
   <div class="topbar">
@@ -96,22 +97,34 @@
     </section>
 
     <section id="cardapio" class="menu-section section-shell">
-      <div class="section-heading">
+      <div class="section-heading menu-heading-upgrade">
         <div>
           <span class="eyebrow"><span></span> escolha o seu favorito</span>
           <h2>Cardápio<br /><em>da casa.</em></h2>
         </div>
         <div class="section-heading__copy">
-          <p>Escolha com calma. O valor é calculado automaticamente e você confirma tudo no WhatsApp.</p>
-          <span class="availability-dot"><i></i> Pratos disponíveis aparecem abaixo</span>
+          <p>Agora você pode abrir cada prato, ver uma foto maior, conferir o que vai e escolher com mais segurança.</p>
+          <span class="availability-dot"><i></i> Clique em qualquer prato para ver os detalhes</span>
         </div>
       </div>
+
+      <div class="preorder-banner">
+        <div class="preorder-banner__icon">✦</div>
+        <div class="preorder-banner__copy">
+          <span>Também fazemos por encomenda</span>
+          <strong>Almoço de família, lasanhas, feijoada, escondidinho e assados.</strong>
+          <p>Escolha abaixo e veja o tamanho da porção, ingredientes e forma de encomendar.</p>
+        </div>
+        <a href="https://wa.me/5587988395085" target="_blank" rel="noopener">Consultar encomenda <span>↗</span></a>
+      </div>
+
+      <div id="menuFilters" class="menu-filters" aria-label="Categorias do cardápio"></div>
 
       <div id="menuLoading" class="menu-loading">
         <span></span>
         Carregando o cardápio...
       </div>
-      <div id="menuGrid" class="menu-grid" aria-live="polite"></div>
+      <div id="menuGrid" class="menu-grid menu-grid--photos" aria-live="polite"></div>
     </section>
 
     <section class="story-section section-shell">
@@ -148,7 +161,7 @@
           <span class="step-number">01</span>
           <div class="step-icon">＋</div>
           <h3>Escolha</h3>
-          <p>Adicione os pratos e ajuste as quantidades no seu carrinho.</p>
+          <p>Abra o prato, veja os detalhes e adicione ao seu pedido.</p>
         </article>
         <article>
           <span class="step-number">02</span>
@@ -170,7 +183,7 @@
         <div>
           <span class="eyebrow eyebrow--light"><span></span> precisa falar antes?</span>
           <h2>Chama a Vanuza.</h2>
-          <p>Se tiver dúvida sobre algum prato, disponibilidade ou entrega, fale direto pelo WhatsApp.</p>
+          <p>Se tiver dúvida sobre algum prato, disponibilidade ou encomenda, fale direto pelo WhatsApp.</p>
         </div>
         <a class="contact-card__action" href="https://wa.me/5587988395085" target="_blank" rel="noopener">
           <span>WhatsApp</span>
@@ -217,6 +230,36 @@
       <button id="checkoutButton" class="button button--primary button--full" type="button">Continuar pedido <span>→</span></button>
     </div>
   </aside>
+
+  <dialog id="productDialog" class="product-dialog">
+    <div class="product-detail">
+      <button id="closeProduct" class="icon-button product-detail__close" type="button" aria-label="Fechar detalhes">×</button>
+      <div class="product-detail__media">
+        <img id="productImage" src="" alt="" />
+        <span id="productBadge" class="product-detail__badge"></span>
+      </div>
+      <div class="product-detail__content">
+        <div class="product-detail__topline">
+          <span id="productCategory"></span>
+          <span id="productPreparation"></span>
+        </div>
+        <h2 id="productTitle"></h2>
+        <p id="productDescription" class="product-detail__description"></p>
+        <div class="product-detail__facts">
+          <div><small>Porção</small><strong id="productServes"></strong></div>
+          <div><small>Valor</small><strong id="productPrice"></strong></div>
+        </div>
+        <div class="product-detail__ingredients">
+          <span class="eyebrow"><span></span> o que vai</span>
+          <ul id="productIngredients"></ul>
+        </div>
+        <div class="product-detail__footer">
+          <button id="productAdd" class="button button--primary button--full" type="button">Adicionar ao pedido <span>＋</span></button>
+          <small>Para encomendas maiores, a Vanuza confirma tamanho, data e disponibilidade pelo WhatsApp.</small>
+        </div>
+      </div>
+    </div>
+  </dialog>
 
   <dialog id="checkoutDialog" class="checkout-dialog">
     <form id="checkoutForm" method="dialog">
