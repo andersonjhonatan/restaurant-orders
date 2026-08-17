@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 LOGO_PATH = BASE_DIR / "assets" / "logo-sabor-da-casa.svg"
 FRONTEND_DIR = BASE_DIR / "frontend"
 ORDERS_PATH = BASE_DIR / "data" / "orders.json"
-ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "vanuza-demo")
+ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 
 
 class OrderItemInput(BaseModel):
@@ -60,6 +60,12 @@ restriction_options = {k: {"value": k} for k in Restriction._member_names_}
 
 
 def require_admin(x_admin_token: Optional[str]) -> None:
+    if not ADMIN_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Configure a variável de ambiente ADMIN_TOKEN para habilitar o painel.",
+        )
+
     if not x_admin_token or not hmac.compare_digest(x_admin_token, ADMIN_TOKEN):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
