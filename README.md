@@ -26,7 +26,8 @@ Sistema web de **cardápio, carrinho e pedidos** do **Sabor da Casa**, administr
 - painel administrativo em `/admin`;
 - atualização do status do pedido: Novo, Confirmado, Em preparo, Saiu para entrega, Concluído ou Cancelado;
 - API FastAPI e documentação Swagger;
-- controle de estoque e montagem de cardápio que estavam incompletos no projeto original.
+- controle de estoque e montagem de cardápio que estavam incompletos no projeto original;
+- CI no GitHub Actions com compilação e testes automatizados.
 
 ## Tecnologias
 
@@ -38,6 +39,7 @@ Sistema web de **cardápio, carrinho e pedidos** do **Sabor da Casa**, administr
 - CSS3 responsivo
 - JavaScript sem framework
 - Pytest
+- GitHub Actions
 
 ## Como executar
 
@@ -45,13 +47,16 @@ Sistema web de **cardápio, carrinho e pedidos** do **Sabor da Casa**, administr
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+export ADMIN_TOKEN="crie-uma-senha-forte"
 uvicorn src.app:app --reload
 ```
 
-No Windows, ative o ambiente com:
+No Windows PowerShell:
 
-```bash
-.venv\Scripts\activate
+```powershell
+.venv\Scripts\Activate.ps1
+$env:ADMIN_TOKEN="crie-uma-senha-forte"
+uvicorn src.app:app --reload
 ```
 
 Depois acesse:
@@ -63,18 +68,9 @@ Depois acesse:
 
 ## Painel administrativo
 
-O painel usa o header `X-Admin-Token`. Para demonstração local o token padrão é:
+O painel exige a variável de ambiente `ADMIN_TOKEN`. Não existe senha administrativa padrão gravada no repositório. Isso evita que um projeto público no GitHub exponha o acesso aos pedidos dos clientes.
 
-```text
-vanuza-demo
-```
-
-Para produção, **não utilize o token padrão**. Defina uma variável de ambiente própria antes de iniciar:
-
-```bash
-export ADMIN_TOKEN="uma-senha-forte-e-exclusiva"
-uvicorn src.app:app --host 0.0.0.0 --port 8000
-```
+Ao abrir `/admin`, informe exatamente o mesmo valor configurado em `ADMIN_TOKEN` no servidor.
 
 ## Endpoints principais
 
@@ -115,11 +111,12 @@ src/
   services/
 
 tests/
+.github/workflows/
 ```
 
-## Próximo passo para produção
+## Produção
 
-O armazenamento JSON é adequado para demonstração e operação local de baixo volume. Para colocar o sistema em produção com múltiplos acessos simultâneos, o recomendado é migrar pedidos e estoque para PostgreSQL, adicionar autenticação de usuário no painel e configurar backup.
+O armazenamento JSON funciona para demonstração, desenvolvimento local e operação de volume muito baixo em um único processo. Para disponibilizar o Sabor da Casa publicamente com segurança e múltiplos acessos, o próximo passo é usar um banco persistente como PostgreSQL, autenticação de painel e backup. Em plataformas serverless, não use `data/orders.json` como banco definitivo.
 
 ---
 
