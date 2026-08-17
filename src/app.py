@@ -12,7 +12,7 @@ WHATSAPP = "87 98839-5085"
 WHATSAPP_URL = "https://wa.me/5587988395085"
 SLOGAN = "Da minha cozinha para sua família"
 BASE_DIR = Path(__file__).resolve().parents[1]
-LOGO_PATH = BASE_DIR / "assets" / "logo-sabor-da-casa.webp"
+LOGO_PATH = BASE_DIR / "assets" / "logo-sabor-da-casa.svg"
 
 app = FastAPI(
     title=RESTAURANT_NAME,
@@ -42,7 +42,7 @@ def get_restaurant_info():
 
 @app.get("/brand/logo", include_in_schema=False)
 def get_restaurant_logo():
-    return FileResponse(LOGO_PATH, media_type="image/webp")
+    return FileResponse(LOGO_PATH, media_type="image/svg+xml")
 
 
 @app.get("/", tags=["menu"])
