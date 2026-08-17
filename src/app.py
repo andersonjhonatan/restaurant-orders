@@ -1,13 +1,48 @@
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.responses import FileResponse
 
 from models.ingredient import Restriction
 from services.menu_builder import MenuBuilder
 
-app = FastAPI(title="Restaurante Chapa Quente")
+RESTAURANT_NAME = "Sabor da Casa"
+OWNER_NAME = "Vanuza"
+WHATSAPP = "87 98839-5085"
+WHATSAPP_URL = "https://wa.me/5587988395085"
+SLOGAN = "Da minha cozinha para sua família"
+BASE_DIR = Path(__file__).resolve().parents[1]
+LOGO_PATH = BASE_DIR / "assets" / "logo-sabor-da-casa.webp"
+
+app = FastAPI(
+    title=RESTAURANT_NAME,
+    description=(
+        "API de cardápio e pedidos do Sabor da Casa, "
+        "administrado por Vanuza."
+    ),
+    version="1.0.0",
+    contact={"name": OWNER_NAME, "url": WHATSAPP_URL},
+)
 menu_builder = MenuBuilder()
 
-
 restriction_options = {k: {"value": k} for k in Restriction._member_names_}
+
+
+@app.get("/info", tags=["restaurante"])
+def get_restaurant_info():
+    return {
+        "name": RESTAURANT_NAME,
+        "owner": OWNER_NAME,
+        "slogan": SLOGAN,
+        "whatsapp": WHATSAPP,
+        "whatsapp_url": WHATSAPP_URL,
+        "logo": "/brand/logo",
+    }
+
+
+@app.get("/brand/logo", include_in_schema=False)
+def get_restaurant_logo():
+    return FileResponse(LOGO_PATH, media_type="image/webp")
 
 
 @app.get("/", tags=["menu"])
