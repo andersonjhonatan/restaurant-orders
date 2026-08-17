@@ -5,7 +5,7 @@ from typing import List, Optional
 from urllib.parse import quote
 
 from fastapi import FastAPI, Header, HTTPException, Query, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -18,8 +18,8 @@ OWNER_NAME = "Vanuza"
 WHATSAPP = "87 98839-5085"
 WHATSAPP_URL = "https://wa.me/5587988395085"
 SLOGAN = "Da minha cozinha para sua família"
+LOGO_URL = "https://raw.githubusercontent.com/andersonjhonatan/restaurant-orders/main/assets/logo-sabor-da-casa.svg"
 BASE_DIR = Path(__file__).resolve().parents[1]
-LOGO_PATH = BASE_DIR / "assets" / "logo-sabor-da-casa.svg"
 FRONTEND_DIR = BASE_DIR / "frontend"
 ORDERS_PATH = BASE_DIR / "data" / "orders.json"
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
@@ -52,7 +52,7 @@ app = FastAPI(
     description=(
         "Sistema de cardápio, encomendas e pedidos do Sabor da Casa, administrado por Vanuza."
     ),
-    version="2.2.0",
+    version="2.2.1",
     contact={"name": OWNER_NAME, "url": WHATSAPP_URL},
 )
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -122,14 +122,14 @@ def admin_page():
 
 @app.get("/brand/logo", include_in_schema=False)
 def get_restaurant_logo():
-    return FileResponse(LOGO_PATH, media_type="image/svg+xml")
+    return RedirectResponse(LOGO_URL, status_code=307)
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.svg", include_in_schema=False)
 @app.get("/favicon.png", include_in_schema=False)
 def favicon():
-    return FileResponse(LOGO_PATH, media_type="image/svg+xml")
+    return RedirectResponse(LOGO_URL, status_code=307)
 
 
 @app.get("/info", tags=["restaurante"])
