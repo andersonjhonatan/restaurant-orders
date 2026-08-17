@@ -14,64 +14,51 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/styles.css?v=reference-ui-4" />
 </head>
 <body>
-  <div class="app-shell">
-    <header id="inicio" class="app-topbar shell">
-      <a class="brand" href="#inicio" aria-label="Sabor da Casa">
-        <span class="brand__mark"><img src="/brand/logo" alt="Logo Sabor da Casa by Vanuza" /></span>
-        <span class="brand__copy"><small>Bem-vindo ao</small><strong>Sabor da Casa</strong><em>by Vanuza</em></span>
+  <div class="app-frame">
+    <header id="inicio" class="app-header shell">
+      <div class="header-spacer" aria-hidden="true"></div>
+      <a class="logo-lockup" href="#inicio" aria-label="Sabor da Casa by Vanuza">
+        <img src="/brand/logo" alt="Sabor da Casa by Vanuza" />
       </a>
-      <div class="top-actions">
-        <a class="icon-action" href="https://wa.me/5587988395085" target="_blank" rel="noopener" aria-label="WhatsApp">↗</a>
-        <button id="cartButton" class="icon-action cart-action" type="button" aria-label="Abrir carrinho"><span>⌁</span><b id="cartCount" class="cart-count">0</b></button>
-      </div>
+      <a class="header-icon" href="https://wa.me/5587988395085" target="_blank" rel="noopener" aria-label="Falar com a Vanuza">♧</a>
     </header>
 
     <main>
       <section class="home shell">
-        <div class="home-heading">
-          <span>Da minha cozinha para sua família</span>
-          <h1>O que você quer comer <em>hoje?</em></h1>
-        </div>
-
-        <label class="search-box" for="menuSearch">
-          <span>⌕</span>
-          <input id="menuSearch" type="search" autocomplete="off" placeholder="Buscar pratos, lasanhas, feijoada..." />
-          <kbd>⌘ K</kbd>
+        <label class="search-bar" for="menuSearch">
+          <span class="search-icon">⌕</span>
+          <input id="menuSearch" type="search" autocomplete="off" placeholder="Buscar pratos, categorias..." />
+          <span class="filter-icon">☷</span>
         </label>
 
-        <article class="offer-card">
-          <div class="offer-card__copy">
-            <span>Encomendas da casa</span>
-            <h2>Almoço de família sem complicação.</h2>
-            <p>Lasanhas, feijoada, escondidinho e assados preparados com carinho.</p>
-            <button type="button" data-mode-jump="Encomenda">Ver encomendas</button>
-          </div>
-          <div class="offer-card__image"><img src="https://images.unsplash.com/photo-1640063414338-af9faa0c2485?auto=format&fit=crop&w=900&q=84" alt="Lasanha caseira" /></div>
-          <span class="offer-card__badge">Especial</span>
-        </article>
-      </section>
-
-      <section class="categories shell">
-        <div class="section-title"><div><small>Explore</small><h2>Categorias</h2></div><button type="button" data-scroll-menu>Ver todas</button></div>
-        <div class="category-row">
-          <button type="button" data-mode-jump="Hoje"><span>🍽️</span><b>Hoje</b></button>
-          <button type="button" data-category-jump="Lasanhas"><span>🧀</span><b>Lasanhas</b></button>
-          <button type="button" data-category-jump="Encomendas"><span>🥘</span><b>Feijoada</b></button>
-          <button type="button" data-category-jump="Assados"><span>🍗</span><b>Assados</b></button>
-          <button type="button" data-mode-jump="Encomenda"><span>📅</span><b>Encomendas</b></button>
+        <div class="quick-filters" aria-label="Atalhos do cardápio">
+          <button type="button" class="is-active" data-mode-jump="Hoje">Todos</button>
+          <button type="button" data-category-jump="Lasanhas">Pratos principais</button>
+          <button type="button" data-category-jump="Encomendas">Encomendas</button>
+          <button type="button" data-category-jump="Assados">Assados</button>
         </div>
-      </section>
 
-      <section id="destaques" class="featured-section shell">
-        <div class="section-title"><div><small>Escolhas da Vanuza</small><h2>Mais pedidos</h2></div><button type="button" data-scroll-menu>Ver cardápio</button></div>
-        <div id="featuredGrid" class="featured-grid" aria-live="polite"></div>
+        <div class="section-line">
+          <h1>Destaque do dia</h1>
+          <span>Hoje é dia de carinho!</span>
+        </div>
+        <div id="featuredHero" class="featured-hero" aria-live="polite"></div>
+
+        <div class="section-line section-line--list">
+          <h2>Nossos destaques</h2>
+          <button type="button" data-scroll-menu>Ver todos</button>
+        </div>
+        <div id="featuredList" class="featured-list" aria-live="polite"></div>
       </section>
 
       <section id="cardapio" class="menu-section shell">
-        <div class="section-title section-title--menu"><div><small>Seu pedido</small><h2>Cardápio</h2></div><p>Toque em um prato para abrir os detalhes.</p></div>
+        <div class="screen-heading">
+          <div><small>Escolha do seu jeito</small><h2>Cardápio</h2></div>
+          <button id="cartButton" class="cart-header-button" type="button" aria-label="Abrir carrinho">⌁<b id="cartCount">0</b></button>
+        </div>
 
         <div class="mode-tabs" role="tablist" aria-label="Tipo de pedido">
           <button class="order-mode__button is-active" type="button" data-mode="Hoje"><span>Agora</span><strong>Disponível hoje</strong></button>
@@ -80,7 +67,7 @@
 
         <div id="preorderNotice" class="preorder-banner" hidden>
           <div class="preorder-banner__icon">✦</div>
-          <div class="preorder-banner__copy"><span>Encomendas</span><strong>Escolha tamanho, data e horário.</strong><p>Valores demonstrativos enquanto o cardápio real está sendo configurado.</p></div>
+          <div class="preorder-banner__copy"><span>Encomendas Sabor da Casa</span><strong>Escolha tamanho, data e horário.</strong><p>Valores demonstrativos enquanto o cardápio real da Vanuza está sendo configurado.</p></div>
           <a href="https://wa.me/5587988395085" target="_blank" rel="noopener">Falar com a Vanuza ↗</a>
         </div>
 
@@ -89,67 +76,76 @@
         <div id="menuGrid" class="menu-grid" aria-live="polite"></div>
       </section>
 
-      <section id="como-funciona" class="steps shell">
-        <div class="section-title"><div><small>Pedido simples</small><h2>Como funciona</h2></div></div>
-        <div class="steps-grid">
-          <article><span>01</span><i>＋</i><h3>Escolha</h3><p>Abra o prato e veja foto, ingredientes e porções.</p></article>
-          <article><span>02</span><i>⌁</i><h3>Personalize</h3><p>Escolha tamanho e data quando for encomenda.</p></article>
-          <article><span>03</span><i>✓</i><h3>Confirme</h3><p>O pedido é salvo e o WhatsApp abre com o resumo.</p></article>
-        </div>
+      <section id="como-funciona" class="benefits shell">
+        <article><span>♧</span><strong>Ingredientes selecionados</strong></article>
+        <article><span>♨</span><strong>Receitas caseiras</strong></article>
+        <article><span>♡</span><strong>Feito no dia com carinho</strong></article>
       </section>
 
-      <section class="contact shell">
-        <div><small>Atendimento direto</small><h2>Precisa de algo especial?</h2><p>Fale com a Vanuza para quantidades maiores ou encomendas personalizadas.</p></div>
-        <a href="https://wa.me/5587988395085" target="_blank" rel="noopener"><span>WhatsApp</span><strong>(87) 98839-5085</strong><b>↗</b></a>
+      <section class="contact-card shell">
+        <div><small>Atendimento via WhatsApp</small><strong>(87) 98839-5085</strong><p>Encomenda personalizada, quantidade maior ou alguma dúvida? Fale com a Vanuza.</p></div>
+        <a href="https://wa.me/5587988395085" target="_blank" rel="noopener">Abrir conversa ↗</a>
       </section>
     </main>
 
     <footer class="footer shell">
-      <div class="brand brand--footer"><span class="brand__mark"><img src="/brand/logo" alt="Sabor da Casa" /></span><span class="brand__copy"><strong>Sabor da Casa</strong><em>by Vanuza</em></span></div>
-      <p>Da minha cozinha para sua família.</p>
-      <div><small>© <span id="year"></span> Sabor da Casa.</small><small>Desenvolvido por K2 Tech</small></div>
+      <div class="footer-brand"><img src="/brand/logo" alt="Sabor da Casa" /><div><strong>Sabor da Casa</strong><small>Da minha cozinha para sua família.</small></div></div>
+      <div class="footer-meta"><small>© <span id="year"></span> Sabor da Casa</small><small>Desenvolvido por K2 Tech</small></div>
     </footer>
   </div>
 
-  <nav class="bottom-nav" aria-label="Navegação mobile">
+  <nav class="bottom-nav" aria-label="Navegação principal">
     <a class="is-active" href="#inicio"><span>⌂</span><small>Início</small></a>
-    <a href="#cardapio"><span>▦</span><small>Cardápio</small></a>
-    <button type="button" data-mode-jump="Encomenda"><span>✦</span><small>Encomendas</small></button>
-    <button id="mobileCartNav" type="button"><span>⌁</span><small>Carrinho</small><b id="mobileNavCount">0</b></button>
+    <button id="mobileCartNav" type="button"><span>⌁</span><small>Pedidos</small><b id="mobileNavCount">0</b></button>
+    <button type="button" data-mode-jump="Encomenda"><span>◇</span><small>Encomendas</small></button>
+    <a href="https://wa.me/5587988395085" target="_blank" rel="noopener"><span>♙</span><small>Contato</small></a>
   </nav>
 
   <button id="mobileCartBar" class="mobile-cart-bar" type="button" hidden><span><b id="mobileCartCount">0</b> itens</span><strong id="mobileCartTotal">R$ 0,00</strong><em>Ver pedido →</em></button>
   <div id="overlay" class="overlay" hidden></div>
 
   <aside id="cartDrawer" class="cart-drawer" aria-hidden="true">
-    <div class="drawer-header"><div><span>Seu pedido</span><h2>Meu carrinho</h2></div><button id="closeCart" class="icon-button" type="button">×</button></div>
+    <div class="drawer-header"><button id="closeCart" class="icon-button" type="button" aria-label="Voltar">←</button><div><small>Seu pedido</small><h2>Meu carrinho</h2></div><button class="icon-button icon-button--muted" type="button" aria-label="Carrinho">⌁</button></div>
+    <div class="delivery-strip"><span>▣</span><div><strong>Entrega ou retirada</strong><small>Informe os dados na finalização</small></div></div>
     <div id="cartKinds" class="cart-kinds"></div>
     <div id="cartItems" class="cart-items"></div>
-    <div id="emptyCart" class="empty-cart"><span>⌁</span><strong>Seu carrinho está vazio</strong><p>Escolha um prato para começar.</p><button class="button button--soft" type="button" data-close-and-menu>Ver cardápio</button></div>
-    <div id="cartSummary" class="cart-summary" hidden><div class="cart-total"><span>Total do pedido</span><strong id="cartTotal">R$ 0,00</strong></div><button id="checkoutButton" class="button button--primary button--full" type="button">Continuar pedido →</button></div>
+    <div id="emptyCart" class="empty-cart"><span>▢</span><strong>Seu carrinho está vazio</strong><p>Você ainda não adicionou nenhum prato.</p><button class="button button--soft" type="button" data-close-and-menu>Ver cardápio</button></div>
+    <div id="cartSummary" class="cart-summary" hidden><div class="cart-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div><button id="checkoutButton" class="button button--primary button--full" type="button">Confirmar pedido →</button></div>
   </aside>
 
   <dialog id="productDialog" class="product-dialog">
     <div class="product-detail">
-      <button id="closeProduct" class="icon-button product-detail__close" type="button" aria-label="Fechar">←</button>
-      <div class="product-detail__media"><img id="productImage" src="" alt="" /><span id="productBadge" class="product-detail__badge"></span></div>
+      <div class="product-detail__media">
+        <img id="productImage" src="" alt="" />
+        <button id="closeProduct" class="icon-button product-detail__back" type="button" aria-label="Voltar">←</button>
+        <button class="icon-button product-detail__favorite" type="button" aria-label="Favoritar">♡</button>
+        <span id="productBadge" class="product-detail__badge"></span>
+      </div>
       <div class="product-detail__content">
         <div class="product-detail__topline"><span id="productCategory"></span><span id="productPreparation"></span></div>
-        <h2 id="productTitle"></h2>
+        <div class="product-title-row"><h2 id="productTitle"></h2><span class="rating">★ 4,9 <small>(demo)</small></span></div>
         <p id="productDescription" class="product-detail__description"></p>
+        <strong id="productPrice" class="product-main-price"></strong>
         <div id="productHighlights" class="product-highlights"></div>
-        <div class="product-detail__chooser"><div class="chooser-heading"><span>Escolha a porção</span><small id="productLeadTime"></small></div><div id="productOptions" class="product-options"></div></div>
-        <div class="product-detail__facts"><div><small>Porção escolhida</small><strong id="productServes"></strong></div><div><small>Valor</small><strong id="productPrice"></strong></div></div>
+
+        <div class="product-accompaniments"><div class="detail-heading"><span>Acompanha</span><small id="productLeadTime"></small></div><div id="productAccompaniments"></div></div>
+
+        <div class="product-detail__chooser"><div class="detail-heading"><span>Escolha a porção</span><small id="productServes"></small></div><div id="productOptions" class="product-options"></div></div>
+
         <div class="product-detail__ingredients"><span class="detail-label">O que vai</span><ul id="productIngredients"></ul></div>
-        <div class="product-accompaniments"><span class="detail-label">Acompanha</span><div id="productAccompaniments"></div></div>
-        <div class="product-detail__footer"><button id="productAdd" class="button button--primary button--full" type="button">Adicionar ao carrinho ＋</button><small id="productFootnote"></small></div>
+
+        <div class="product-bottom-action">
+          <div class="product-qty"><button id="productQtyMinus" type="button">−</button><strong id="productQty">1</strong><button id="productQtyPlus" type="button">+</button></div>
+          <button id="productAdd" class="button button--primary" type="button">Adicionar ao carrinho <span>⌁</span></button>
+        </div>
+        <small id="productFootnote" class="product-footnote"></small>
       </div>
     </div>
   </dialog>
 
   <dialog id="checkoutDialog" class="checkout-dialog">
     <form id="checkoutForm" method="dialog">
-      <div class="drawer-header"><div><span>Último passo</span><h2>Confirmar pedido</h2></div><button id="closeCheckout" class="icon-button" type="button">×</button></div>
+      <div class="drawer-header"><button id="closeCheckout" class="icon-button" type="button">←</button><div><small>Último passo</small><h2>Confirmar pedido</h2></div><span></span></div>
       <p class="checkout-intro">Preencha seus dados. Se houver encomenda, escolha também a data desejada.</p>
       <div id="checkoutOrderKinds" class="checkout-order-kinds"></div>
       <div class="form-grid">
@@ -162,13 +158,13 @@
         <label class="form-field form-field--full">Observação<textarea name="notes" rows="3" maxlength="200" placeholder="Ex.: sem cebola, troco para R$ 50..."></textarea></label>
       </div>
       <div id="checkoutError" class="form-error" hidden></div>
-      <button id="submitOrder" class="button button--primary button--full" type="submit">Registrar e abrir WhatsApp ↗</button>
+      <button id="submitOrder" class="button button--primary button--full" type="submit">Confirmar no WhatsApp ↗</button>
       <p class="checkout-note">Seu pedido ficará salvo no sistema do Sabor da Casa.</p>
     </form>
   </dialog>
 
   <div id="successOverlay" class="success-overlay" hidden><div class="success-card"><span>✓</span><small>Pedido registrado</small><strong id="successTitle">Tudo certo!</strong><p>Agora vamos abrir o WhatsApp da Vanuza para confirmar.</p></div></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v=reference-ui-4" defer></script>
 </body>
 </html>
