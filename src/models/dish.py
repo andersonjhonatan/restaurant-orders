@@ -1,7 +1,7 @@
 from numbers import Real
 from typing import Dict
 
-from models.ingredient import Ingredient
+from src.models.ingredient import Ingredient
 
 Recipe = Dict[Ingredient, int]
 
