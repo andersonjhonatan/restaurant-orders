@@ -49,7 +49,7 @@ app = FastAPI(
     description=(
         "Sistema de cardápio e pedidos do Sabor da Casa, administrado por Vanuza."
     ),
-    version="2.0.0",
+    version="2.1.0",
     contact={"name": OWNER_NAME, "url": WHATSAPP_URL},
 )
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -118,6 +118,13 @@ def admin_page():
 
 @app.get("/brand/logo", include_in_schema=False)
 def get_restaurant_logo():
+    return FileResponse(LOGO_PATH, media_type="image/svg+xml")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.svg", include_in_schema=False)
+@app.get("/favicon.png", include_in_schema=False)
+def favicon():
     return FileResponse(LOGO_PATH, media_type="image/svg+xml")
 
 
