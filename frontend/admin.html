@@ -2,61 +2,67 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#2d4910" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#304016" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Painel de pedidos | Sabor da Casa</title>
+  <link rel="icon" type="image/svg+xml" href="/brand/logo" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
   <link rel="stylesheet" href="/static/admin.css" />
 </head>
 <body class="admin-body">
   <header class="admin-header">
     <a class="brand" href="/">
-      <img src="/brand/logo" alt="Sabor da Casa" />
-      <span><strong>Sabor da Casa</strong><small>Painel da Vanuza</small></span>
+      <span class="brand__mark"><img src="/brand/logo" alt="Sabor da Casa" /></span>
+      <span class="brand__text"><strong>Sabor da Casa</strong><small>Painel da Vanuza</small></span>
     </a>
-    <a class="button button--ghost" href="/">Ver cardápio</a>
+    <a class="button button--ghost" href="/">Ver cardápio <span>↗</span></a>
   </header>
 
   <main class="admin-shell">
     <section id="loginCard" class="admin-login">
-      <span class="eyebrow">Área administrativa</span>
-      <h1>Pedidos do Sabor da Casa</h1>
-      <p>Informe o token administrativo para visualizar e atualizar os pedidos.</p>
+      <div class="admin-login__seal"><img src="/brand/logo" alt="" /></div>
+      <span class="eyebrow"><span></span> acesso reservado</span>
+      <h1>Gestão simples.<br /><em>Pedidos organizados.</em></h1>
+      <p>Entre com o token administrativo para acompanhar os pedidos do Sabor da Casa.</p>
       <form id="tokenForm">
         <label class="form-field">Token administrativo
           <input id="adminToken" type="password" autocomplete="current-password" required placeholder="Digite o token" />
         </label>
-        <button class="button button--primary button--full" type="submit">Entrar no painel</button>
+        <button class="button button--primary button--full" type="submit">Entrar no painel <span>→</span></button>
       </form>
       <div id="loginError" class="form-error" hidden></div>
+      <small class="admin-login__hint">Área exclusiva para administração dos pedidos.</small>
     </section>
 
     <section id="dashboard" class="dashboard" hidden>
       <div class="dashboard-heading">
         <div>
-          <span class="eyebrow">Gestão de pedidos</span>
+          <span class="eyebrow"><span></span> gestão de pedidos</span>
           <h1>Olá, Vanuza 👋</h1>
-          <p>Acompanhe os pedidos e altere o andamento de cada um.</p>
+          <p>Veja o que entrou, acompanhe o preparo e mantenha cada pedido atualizado.</p>
         </div>
         <div class="dashboard-actions">
-          <button id="refreshOrders" class="button button--ghost" type="button">Atualizar</button>
+          <button id="refreshOrders" class="button button--soft" type="button">Atualizar</button>
           <button id="logoutButton" class="button button--ghost" type="button">Sair</button>
         </div>
       </div>
 
       <div class="stats-grid">
-        <article><small>Total</small><strong id="statTotal">0</strong></article>
-        <article><small>Novos</small><strong id="statNew">0</strong></article>
-        <article><small>Em preparo</small><strong id="statPreparing">0</strong></article>
-        <article><small>Concluídos</small><strong id="statDone">0</strong></article>
+        <article><small>Total de pedidos</small><strong id="statTotal">0</strong><span>registrados</span></article>
+        <article><small>Novos</small><strong id="statNew">0</strong><span>aguardando atenção</span></article>
+        <article><small>Em preparo</small><strong id="statPreparing">0</strong><span>na cozinha</span></article>
+        <article><small>Concluídos</small><strong id="statDone">0</strong><span>finalizados</span></article>
       </div>
 
       <div class="orders-toolbar">
         <label>
-          <span>Status</span>
+          <span>Filtrar por status</span>
           <select id="statusFilter">
-            <option value="">Todos</option>
+            <option value="">Todos os pedidos</option>
             <option value="Novo">Novo</option>
             <option value="Confirmado">Confirmado</option>
             <option value="Em preparo">Em preparo</option>
@@ -68,7 +74,7 @@
         <span id="lastUpdated" class="last-updated"></span>
       </div>
 
-      <div id="ordersLoading" class="menu-loading" hidden>Carregando pedidos...</div>
+      <div id="ordersLoading" class="menu-loading" hidden><span></span> Carregando pedidos...</div>
       <div id="ordersList" class="orders-list"></div>
       <div id="ordersEmpty" class="menu-empty" hidden>Nenhum pedido encontrado.</div>
     </section>
