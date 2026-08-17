@@ -1,25 +1,25 @@
 ingredient,initial_amount
-queijo mussarela,300
-tomate,300
+queijo mussarela,500
+tomate,400
 farinha,350
-farinha de trigo,100
+farinha de trigo,250
 sal,300
 cravo,200
 água,500
 orégano,250
 molho shoyu,200
-batata,450
+batata,500
 fermento,200
-bacon,300
+bacon,350
 manteiga,300
 caldo de carne,150
 manjericão,300
 camarão,200
-carne,250
+carne,500
 creme de leite,250
-frango,300
+frango,500
 ovo,250
-azeite,200
+azeite,300
 vinagre,100
 queijo gorgonzola,200
 salmão,200
@@ -31,12 +31,20 @@ tofu,300
 pepino,200
 açúcar,200
 limão,250
-alho,200
+alho,300
 vinho madeira,150
-massa de lasanha,200
-arroz,300
-molho de tomate,300
-cebola,200
+massa de lasanha,350
+arroz,500
+molho de tomate,500
+cebola,400
 massa de ravioli,300
-presunto,50
-berinjela,20
+presunto,250
+berinjela,180
+feijão preto,500
+linguiça,300
+couve,250
+farinha de mandioca,250
+vinagrete,250
+carne de sol,400
+macaxeira,500
+requeijão,250
