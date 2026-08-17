@@ -38,10 +38,14 @@ Depois acesse:
 
 ## Endpoints principais
 
-- `GET /` — retorna o cardápio.
 - `GET /info` — retorna nome, responsável, slogan, WhatsApp e endereço da logo.
 - `GET /brand/logo` — disponibiliza a logo oficial da marca.
-- `POST /order` — registra o pedido de um prato.
+- `GET /` — endpoint de cardápio da estrutura original.
+- `POST /order` — endpoint de pedidos da estrutura original.
+
+## Status atual
+
+A identidade do projeto já está configurada para o **Sabor da Casa**. A base original, porém, ainda possui partes das regras de cardápio e estoque não implementadas, portanto os endpoints de cardápio e pedido ainda precisam ser finalizados antes de uso real em produção.
 
 ## Estrutura
 
