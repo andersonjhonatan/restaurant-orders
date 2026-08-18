@@ -1,1 +1,262 @@
-.admin-body{min-height:100dvh;padding-bottom:36px;background:radial-gradient(circle at 90% 0,rgba(185,74,28,.08),transparent 28rem),linear-gradient(180deg,#fff9ef,var(--bg))}.admin-header{position:sticky;top:10px;z-index:30;width:min(1160px,calc(100% - 20px));min-height:72px;margin:10px auto 0;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:20px;background:rgba(255,250,242,.94);box-shadow:var(--soft-shadow);backdrop-filter:blur(16px)}.admin-header .brand__mark{width:86px;height:62px;display:grid;place-items:center;overflow:visible;border:0;border-radius:0;background:transparent}.admin-header .brand__mark img{width:100%;height:100%;max-width:100%;object-fit:contain;border:0;border-radius:0;clip-path:none;transform:none;filter:drop-shadow(0 6px 12px rgba(82,49,27,.1))}.admin-header .button{min-height:42px;padding-inline:13px}.admin-shell{width:min(1160px,calc(100% - 28px));margin:auto;padding:38px 0 72px}.admin-login{position:relative;overflow:hidden;width:min(100%,580px);margin:4vh auto 0;padding:30px 24px;border:1px solid var(--line);border-radius:26px;background:linear-gradient(145deg,#fffaf2,#f5e2c3);box-shadow:var(--shadow)}.admin-login:before{content:"";position:absolute;right:-70px;top:-90px;width:210px;height:210px;border:1px solid rgba(109,120,48,.16);border-radius:50%}.admin-login__seal{width:132px;height:102px;margin-bottom:20px;display:grid;place-items:center;overflow:visible;border:0;border-radius:0;background:transparent;filter:none}.admin-login__seal img{width:100%;height:100%;max-width:100%;object-fit:contain;border-radius:0;clip-path:none;transform:none;filter:drop-shadow(0 8px 16px rgba(84,50,28,.12))}.admin-login .eyebrow,.dashboard .eyebrow{color:var(--olive2)}.admin-login h1,.dashboard h1{margin:10px 0 0;color:var(--brown);font-family:"Playfair Display",Georgia,serif;font-weight:700;letter-spacing:-.035em;line-height:.98}.admin-login h1{font-size:clamp(2.5rem,9vw,4.2rem)}.admin-login h1 em{color:var(--rust);font-style:italic}.admin-login>p,.dashboard-heading p{max-width:590px;color:var(--muted);line-height:1.65}.admin-login form{display:grid;gap:14px;margin-top:24px}.admin-login__hint{display:block;margin-top:13px;color:#9b887a;text-align:center;font-size:.64rem}.dashboard-heading{display:grid;gap:18px;margin-bottom:26px}.dashboard h1{font-size:clamp(2.3rem,8vw,3.9rem)}.dashboard-actions{display:flex;flex-wrap:wrap;gap:8px}.stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stats-grid article{min-height:120px;padding:16px;display:grid;align-content:space-between;border:1px solid var(--line);border-radius:18px;background:var(--paper);box-shadow:var(--soft-shadow)}.stats-grid small{color:var(--muted);font-size:.65rem;font-weight:800}.stats-grid strong{color:var(--rust);font:700 2rem "Playfair Display",Georgia,serif}.stats-grid span{color:#998579;font-size:.58rem}.orders-toolbar{margin:26px 0 14px;padding:13px 14px;display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;border:1px solid var(--line);border-radius:16px;background:var(--paper);box-shadow:var(--soft-shadow)}.orders-toolbar label{display:grid;gap:5px;color:var(--brown);font-size:.68rem;font-weight:800}.orders-toolbar select{min-width:180px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff7e9;color:var(--ink)}.last-updated{color:var(--muted);font-size:.64rem}.orders-list{display:grid;gap:11px}.order-card{position:relative;overflow:hidden;padding:17px;border:1px solid var(--line);border-radius:19px;background:var(--paper);box-shadow:var(--soft-shadow)}.order-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tan)}.order-card__top{display:flex;align-items:start;justify-content:space-between;gap:10px}.order-number{display:grid}.order-number strong{color:var(--brown);font:700 1.15rem "Playfair Display",Georgia,serif}.order-number small{margin-top:2px;color:var(--muted);font-size:.61rem}.status-pill{padding:6px 9px;border-radius:999px;color:var(--olive2);background:rgba(109,120,48,.12);font-size:.58rem;font-weight:900;white-space:nowrap}.status-pill[data-status="Novo"]{color:#a06c16;background:rgba(180,122,36,.12)}.status-pill[data-status="Confirmado"]{color:#48637a;background:rgba(72,99,122,.1)}.status-pill[data-status="Em preparo"]{color:#a36c14;background:rgba(183,126,32,.12)}.status-pill[data-status="Saiu para entrega"]{color:#735792;background:rgba(115,87,146,.1)}.status-pill[data-status="Concluído"]{color:var(--olive2);background:rgba(109,120,48,.12)}.status-pill[data-status="Cancelado"]{color:var(--rust2);background:rgba(185,74,28,.09)}.order-customer{display:grid;gap:3px;margin-top:14px}.order-customer strong{color:var(--brown);font-size:.84rem}.order-customer span{color:var(--muted);font-size:.7rem}.order-items{display:grid;gap:8px;margin:14px 0;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.order-item-row{display:flex;justify-content:space-between;gap:12px;color:var(--brown);font-size:.7rem}.order-item-row--rich>span{display:grid}.order-item-row--rich small{color:var(--muted);font-size:.58rem}.order-item-kind{color:var(--olive2)!important;font-size:.52rem!important;font-weight:900;text-transform:uppercase}.order-total{display:flex;justify-content:space-between;gap:12px;align-items:center}.order-total span{color:var(--muted);font-size:.68rem}.order-total strong{color:var(--rust);font:700 1.05rem "Playfair Display",Georgia,serif}.order-notes{margin:12px 0 0;padding:10px 11px;border-radius:11px;color:var(--brown);background:#fff6e6;font-size:.66rem}.order-actions{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:13px}.order-actions select{min-width:0;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff7e9;color:var(--ink);font-size:.68rem}.order-actions button{min-height:40px;padding-inline:13px;font-size:.64rem}@media(min-width:700px){.admin-shell{padding-top:50px}.admin-login{padding:38px}.stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.dashboard-heading{grid-template-columns:1fr auto;align-items:end}.orders-list{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(min-width:1080px){.orders-list{grid-template-columns:repeat(3,minmax(0,1fr))}.stats-grid article{min-height:136px;padding:19px}}@media(max-width:420px){.admin-header{min-height:68px}.admin-header .brand__mark{width:72px;height:54px}.admin-header .brand__text strong{font-size:.76rem}.admin-header .brand__text small{font-size:.54rem}.admin-header .button span{display:none}.admin-shell{width:calc(100% - 20px)}.admin-login{padding:24px 19px}.admin-login__seal{width:116px;height:90px}.orders-toolbar{align-items:stretch}.orders-toolbar label,.orders-toolbar select{width:100%}}
+/* Painel administrativo — responsivo, legível e consistente com a marca */
+.admin-body{
+  min-height:100dvh;
+  padding:0 max(0px,env(safe-area-inset-right)) calc(36px + env(safe-area-inset-bottom)) max(0px,env(safe-area-inset-left));
+  background:radial-gradient(circle at 90% 0,rgba(185,74,28,.08),transparent 28rem),linear-gradient(180deg,#fff9ef,var(--bg));
+  font-size:clamp(15px,1.15vw,16px);
+}
+.admin-header{
+  position:sticky;
+  top:max(8px,env(safe-area-inset-top));
+  z-index:30;
+  width:min(1160px,calc(100% - 20px));
+  min-height:76px;
+  margin:10px auto 0;
+  padding:9px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid var(--line);
+  border-radius:20px;
+  background:rgba(255,250,242,.95);
+  box-shadow:var(--soft-shadow);
+  backdrop-filter:blur(16px);
+}
+.admin-header .brand{min-width:0;display:flex;align-items:center;gap:11px}
+.admin-header .brand::before{
+  content:"";
+  flex:0 0 clamp(52px,7vw,66px);
+  width:clamp(52px,7vw,66px);
+  aspect-ratio:1;
+  background:url("/brand/logo?v=brand-responsive-20") center/contain no-repeat;
+}
+.admin-header .brand__text{min-width:0}
+.admin-header .brand__text strong{display:block;font-size:clamp(.82rem,1.7vw,.98rem);line-height:1.1}
+.admin-header .brand__text small{display:block;margin-top:3px;font-size:clamp(.56rem,1.1vw,.65rem)}
+.admin-header .button{min-height:44px;padding-inline:14px;white-space:nowrap}
+
+.admin-shell{
+  width:min(1160px,calc(100% - 28px));
+  margin:auto;
+  padding:clamp(34px,5vw,58px) 0 clamp(60px,8vw,86px);
+}
+.admin-login{
+  position:relative;
+  overflow:hidden;
+  width:min(100%,600px);
+  margin:min(5vh,50px) auto 0;
+  padding:clamp(24px,4.5vw,40px);
+  border:1px solid var(--line);
+  border-radius:clamp(22px,3vw,28px);
+  background:linear-gradient(145deg,#fffaf2,#f5e2c3);
+  box-shadow:var(--shadow);
+}
+.admin-login::before{
+  content:"";
+  width:clamp(108px,22vw,142px);
+  aspect-ratio:1;
+  margin-bottom:clamp(18px,3vw,24px);
+  display:block;
+  background:url("/brand/logo?v=brand-responsive-20") center/contain no-repeat;
+  filter:drop-shadow(0 8px 18px rgba(82,49,27,.10));
+}
+.admin-login::after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  right:-70px;
+  top:-90px;
+  width:210px;
+  height:210px;
+  border:1px solid rgba(109,120,48,.14);
+  border-radius:50%;
+  pointer-events:none;
+}
+.admin-login>*{position:relative;z-index:1}
+.admin-login .eyebrow,.dashboard .eyebrow{color:var(--olive2)}
+.admin-login h1,.dashboard h1{
+  margin:10px 0 0;
+  color:var(--brown);
+  font-family:"Playfair Display",Georgia,serif;
+  font-weight:700;
+  letter-spacing:-.035em;
+  line-height:.98;
+  text-wrap:balance;
+}
+.admin-login h1{font-size:clamp(2.35rem,8vw,4.25rem)}
+.admin-login h1 em{color:var(--rust);font-style:italic}
+.admin-login>p,.dashboard-heading p{max-width:640px;color:var(--muted);line-height:1.65;font-size:clamp(.8rem,1.4vw,.92rem)}
+.admin-login form{display:grid;gap:14px;margin-top:24px}
+.admin-login .form-field input{font-size:16px;min-height:48px}
+.admin-login__hint{display:block;margin-top:13px;color:#9b887a;text-align:center;font-size:.66rem}
+
+.dashboard-heading{
+  display:grid;
+  gap:18px;
+  margin-bottom:clamp(22px,4vw,30px);
+}
+.dashboard h1{font-size:clamp(2.2rem,6vw,4rem)}
+.dashboard-actions{display:flex;flex-wrap:wrap;gap:8px}
+.dashboard-actions .button{min-height:44px}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(9px,1.8vw,13px);
+}
+.stats-grid article{
+  min-height:126px;
+  padding:clamp(15px,2.4vw,20px);
+  display:grid;
+  align-content:space-between;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--paper);
+  box-shadow:var(--soft-shadow);
+}
+.stats-grid small{color:var(--muted);font-size:clamp(.62rem,1.15vw,.7rem);font-weight:800;line-height:1.35}
+.stats-grid strong{color:var(--rust);font:700 clamp(1.8rem,4vw,2.45rem) "Playfair Display",Georgia,serif}
+.stats-grid span{color:#998579;font-size:clamp(.57rem,1vw,.64rem)}
+
+.orders-toolbar{
+  margin:clamp(22px,4vw,30px) 0 14px;
+  padding:13px 14px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:end;
+  justify-content:space-between;
+  gap:12px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--paper);
+  box-shadow:var(--soft-shadow);
+}
+.orders-toolbar label{display:grid;gap:6px;color:var(--brown);font-size:.7rem;font-weight:800}
+.orders-toolbar select{
+  min-width:min(260px,100%);
+  min-height:44px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:#fff7e9;
+  color:var(--ink);
+  font-size:16px;
+}
+.last-updated{color:var(--muted);font-size:.65rem}
+
+.orders-list{display:grid;gap:12px}
+.order-card{
+  position:relative;
+  overflow:hidden;
+  min-width:0;
+  padding:17px;
+  border:1px solid var(--line);
+  border-radius:19px;
+  background:var(--paper);
+  box-shadow:var(--soft-shadow);
+}
+.order-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tan)}
+.order-card__top{display:flex;align-items:start;justify-content:space-between;gap:10px}
+.order-number{display:grid;min-width:0}
+.order-number strong{color:var(--brown);font:700 1.15rem "Playfair Display",Georgia,serif}
+.order-number small{margin-top:2px;color:var(--muted);font-size:.62rem}
+.status-pill{
+  max-width:56%;
+  padding:6px 9px;
+  border-radius:999px;
+  color:var(--olive2);
+  background:rgba(109,120,48,.12);
+  font-size:.58rem;
+  font-weight:900;
+  line-height:1.2;
+  text-align:center;
+}
+.status-pill[data-status="Novo"],.status-pill[data-status="Aguardando aprovação"]{color:#9a6514;background:rgba(180,122,36,.12)}
+.status-pill[data-status="Confirmado"],.status-pill[data-status="Aceito"]{color:#48637a;background:rgba(72,99,122,.1)}
+.status-pill[data-status="Em preparo"]{color:#a36c14;background:rgba(183,126,32,.12)}
+.status-pill[data-status="Pronto para retirada"]{color:#735792;background:rgba(115,87,146,.1)}
+.status-pill[data-status="Concluído"]{color:var(--olive2);background:rgba(109,120,48,.12)}
+.status-pill[data-status="Cancelado"],.status-pill[data-status="Recusado"]{color:var(--rust2);background:rgba(185,74,28,.09)}
+.order-customer{display:grid;gap:3px;margin-top:14px}
+.order-customer strong{color:var(--brown);font-size:.86rem}
+.order-customer span{color:var(--muted);font-size:.72rem;overflow-wrap:anywhere}
+.order-items{display:grid;gap:8px;margin:14px 0;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.order-item-row{display:flex;justify-content:space-between;gap:12px;color:var(--brown);font-size:.72rem}
+.order-item-row>span:first-child{min-width:0;overflow-wrap:anywhere}
+.order-item-row--rich>span{display:grid}
+.order-item-row--rich small{color:var(--muted);font-size:.59rem}
+.order-item-kind{color:var(--olive2)!important;font-size:.53rem!important;font-weight:900;text-transform:uppercase}
+.order-total{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.order-total span{color:var(--muted);font-size:.69rem}
+.order-total strong{color:var(--rust);font:700 1.08rem "Playfair Display",Georgia,serif}
+.order-notes{margin:12px 0 0;padding:10px 11px;border-radius:11px;color:var(--brown);background:#fff6e6;font-size:.67rem;overflow-wrap:anywhere}
+.order-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:13px}
+.order-actions select{
+  min-width:0;
+  min-height:42px;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff7e9;
+  color:var(--ink);
+  font-size:16px;
+}
+.order-actions button{min-height:42px;padding-inline:13px;font-size:.66rem}
+
+.menu-loading{min-height:96px}
+.menu-empty{padding:28px 18px}
+
+@media(min-width:700px){
+  .admin-shell{padding-top:50px}
+  .admin-login{padding:38px}
+  .stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .dashboard-heading{grid-template-columns:minmax(0,1fr) auto;align-items:end}
+  .orders-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(min-width:1080px){
+  .orders-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stats-grid article{min-height:140px}
+}
+@media(max-width:560px){
+  .admin-header{
+    width:calc(100% - 16px);
+    min-height:70px;
+    padding:8px 10px;
+    border-radius:18px;
+  }
+  .admin-header .brand::before{flex-basis:50px;width:50px}
+  .admin-header .brand__text strong{font-size:.8rem}
+  .admin-header .brand__text small{font-size:.56rem}
+  .admin-header .button{padding-inline:11px;font-size:.68rem}
+  .admin-header .button span{display:none}
+  .admin-shell{width:calc(100% - 20px);padding-top:28px}
+  .admin-login{margin-top:18px;padding:24px 19px}
+  .admin-login::before{width:108px}
+  .orders-toolbar{align-items:stretch}
+  .orders-toolbar label,.orders-toolbar select{width:100%}
+  .last-updated{width:100%;text-align:right}
+  .order-actions{grid-template-columns:1fr}
+  .order-actions button{width:100%}
+}
+@media(max-width:380px){
+  .admin-header{gap:8px}
+  .admin-header .brand{gap:8px}
+  .admin-header .brand::before{flex-basis:44px;width:44px}
+  .admin-header .brand__text small{display:none}
+  .admin-header .button{min-height:42px;padding-inline:9px;font-size:.64rem}
+  .admin-shell{width:calc(100% - 16px)}
+  .admin-login{padding:22px 16px}
+  .admin-login h1{font-size:2.25rem}
+  .stats-grid{grid-template-columns:1fr}
+  .stats-grid article{min-height:106px}
+  .order-card{padding:15px}
+  .status-pill{max-width:52%;font-size:.55rem}
+}
+@media(max-height:560px) and (orientation:landscape){
+  .admin-header{position:relative;top:auto}
+  .admin-login{margin-top:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
