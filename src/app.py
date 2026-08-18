@@ -1,6 +1,7 @@
 import base64
 import hmac
 import os
+import re
 from pathlib import Path
 from typing import List, Optional
 from urllib.parse import quote
@@ -19,6 +20,8 @@ OWNER_NAME = "Vanuza"
 WHATSAPP = "87 98839-5085"
 WHATSAPP_URL = "https://wa.me/5587988395085"
 SLOGAN = "Da minha cozinha para sua família"
+PICKUP_ADDRESS = "Rua Joaquim Deodato, 276"
+PICKUP_REFERENCE = "Vizinho à casa de Deca Cabeleireiro"
 LOGO_URL = "https://raw.githubusercontent.com/andersonjhonatan/restaurant-orders/main/assets/logo-sabor-da-casa.svg"
 BASE_DIR = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = BASE_DIR / "frontend"
@@ -36,7 +39,7 @@ class OrderItemInput(BaseModel):
 class OrderInput(BaseModel):
     customer_name: str
     phone: str
-    delivery_method: str = "Entrega"
+    delivery_method: str = "Retirada"
     address: str = ""
     payment_method: str = "Pix"
     notes: str = ""
@@ -52,9 +55,9 @@ class StatusInput(BaseModel):
 app = FastAPI(
     title=RESTAURANT_NAME,
     description=(
-        "Sistema de cardápio, encomendas e pedidos do Sabor da Casa, administrado por Vanuza."
+        "Sistema de cardápio, encomendas e solicitações do Sabor da Casa, administrado por Vanuza."
     ),
-    version="2.3.0",
+    version="2.4.0",
     contact={"name": OWNER_NAME, "url": WHATSAPP_URL},
 )
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -87,27 +90,73 @@ def require_admin(x_admin_token: Optional[str]) -> None:
         )
 
 
-def build_whatsapp_message(order: dict) -> str:
-    lines = [
-        f"Olá, Vanuza! Quero confirmar o pedido #{order['id']} do Sabor da Casa.",
-        "",
-        f"Cliente: {order['customer_name']}",
-        f"Telefone: {order['phone']}",
-        f"Recebimento: {order['delivery_method']}",
-    ]
-    if order.get("address"):
-        lines.append(f"Endereço: {order['address']}")
-    lines.extend(["", "Itens:"])
-    for item in order["items"]:
-        option = f" — {item['option_label']}" if item.get("option_label") else ""
-        lines.append(
-            f"- {item['quantity']}x {item.get('display_name', item['dish_name'])}{option} "
-            f"(R$ {item['subtotal']:.2f})"
+def _customer_whatsapp_number(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone or "")
+    if digits.startswith("55") and len(digits) >= 12:
+        return digits
+    return f"55{digits}" if digits else ""
+
+
+def build_customer_status_message(order: dict, new_status: str) -> str:
+    customer = order.get("customer_name", "cliente")
+    order_id = order.get("id", "")
+    schedule = order.get("notes", "")
+
+    if new_status == "Aceito":
+        lines = [
+            f"Olá, {customer}! Aqui é a Vanuza, do Sabor da Casa. 😊",
+            "",
+            f"Sua solicitação #{order_id} foi aceita e vou conseguir preparar seu pedido.",
+        ]
+        if schedule:
+            lines.append(f"Data/horário solicitado: {schedule}")
+        lines.extend(
+            [
+                "",
+                "A retirada será em:",
+                PICKUP_ADDRESS,
+                PICKUP_REFERENCE,
+                "",
+                "Qualquer ajuste, pode falar comigo por aqui.",
+            ]
         )
-    lines.extend(["", f"Total: R$ {order['total']:.2f}", f"Pagamento: {order['payment_method']}"])
-    if order.get("notes"):
-        lines.extend(["", f"Observação: {order['notes']}"])
-    return "\n".join(lines)
+        return "\n".join(lines)
+
+    if new_status == "Recusado":
+        lines = [
+            f"Olá, {customer}! Aqui é a Vanuza, do Sabor da Casa.",
+            "",
+            f"Infelizmente não vou conseguir atender a solicitação #{order_id} na data/horário pedido.",
+        ]
+        if schedule:
+            lines.append(f"Solicitação: {schedule}")
+        lines.extend(
+            [
+                "",
+                "Se você quiser, podemos combinar outra data por aqui. 💛",
+            ]
+        )
+        return "\n".join(lines)
+
+    if new_status == "Pronto para retirada":
+        return "\n".join(
+            [
+                f"Olá, {customer}! Seu pedido #{order_id} do Sabor da Casa está pronto para retirada. 😊",
+                "",
+                PICKUP_ADDRESS,
+                PICKUP_REFERENCE,
+            ]
+        )
+
+    return ""
+
+
+def build_customer_whatsapp_url(order: dict, new_status: str) -> str:
+    number = _customer_whatsapp_number(order.get("phone", ""))
+    message = build_customer_status_message(order, new_status)
+    if not number or not message:
+        return ""
+    return f"https://wa.me/{number}?text={quote(message)}"
 
 
 @app.get("/", include_in_schema=False)
@@ -149,6 +198,10 @@ def get_restaurant_info():
         "whatsapp": WHATSAPP,
         "whatsapp_url": WHATSAPP_URL,
         "logo": "/brand/logo",
+        "service": "Retirada",
+        "pickup_address": PICKUP_ADDRESS,
+        "pickup_reference": PICKUP_REFERENCE,
+        "approval_required": True,
     }
 
 
@@ -171,15 +224,14 @@ def make_dish_order(dish_name: str):
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="O prato não pode ser preparado por falta de ingredientes.",
         )
-    return {"message": "Pedido registrado", "dish_name": dish_name}
+    return {"message": "Solicitação registrada", "dish_name": dish_name}
 
 
 @app.post("/api/orders", tags=["pedidos"], status_code=status.HTTP_201_CREATED)
 def create_order(payload: OrderInput):
     customer_name = payload.customer_name.strip()
     phone = payload.phone.strip()
-    delivery_method = payload.delivery_method.strip()
-    address = payload.address.strip()
+    delivery_method = payload.delivery_method.strip() or "Retirada"
     payment_method = payload.payment_method.strip()
     notes = payload.notes.strip()
     requested_date = payload.requested_date.strip()
@@ -189,17 +241,21 @@ def create_order(payload: OrderInput):
         raise HTTPException(status_code=422, detail="Informe seu nome.")
     if len(phone) < 8:
         raise HTTPException(status_code=422, detail="Informe um telefone válido.")
-    if delivery_method not in {"Entrega", "Retirada"}:
-        raise HTTPException(status_code=422, detail="Forma de recebimento inválida.")
-    if delivery_method == "Entrega" and len(address) < 4:
-        raise HTTPException(status_code=422, detail="Informe o endereço de entrega.")
+    if delivery_method != "Retirada":
+        raise HTTPException(
+            status_code=422,
+            detail="O Sabor da Casa trabalha somente com retirada no local.",
+        )
+    if not requested_date:
+        raise HTTPException(status_code=422, detail="Escolha a data desejada para a retirada.")
+    if not requested_time:
+        raise HTTPException(status_code=422, detail="Escolha o horário desejado para a retirada.")
     if not payload.items:
         raise HTTPException(status_code=422, detail="Adicione ao menos um prato.")
 
     available_menu = {item["dish_name"]: item for item in menu_builder.get_main_menu()}
     normalized_items = []
     total = 0.0
-    has_preorder = False
 
     for requested in payload.items:
         dish = available_menu.get(requested.dish_name)
@@ -227,7 +283,6 @@ def create_order(payload: OrderInput):
         subtotal = round(unit_price * requested.quantity, 2)
         total += subtotal
         order_type = dish.get("order_type", "Hoje")
-        has_preorder = has_preorder or order_type == "Encomenda"
         normalized_items.append(
             {
                 "dish_name": dish["dish_name"],
@@ -242,24 +297,18 @@ def create_order(payload: OrderInput):
             }
         )
 
-    if has_preorder and not requested_date:
-        raise HTTPException(status_code=422, detail="Escolha a data desejada para a encomenda.")
-
-    note_parts = []
-    if has_preorder:
-        schedule = f"Encomenda para {requested_date}"
-        if requested_time:
-            schedule += f" às {requested_time}"
-        note_parts.append(schedule)
+    schedule = f"Retirada desejada para {requested_date} às {requested_time}"
+    note_parts = [schedule]
     if notes:
         note_parts.append(notes[:200])
 
     order = order_store.create_order(
         {
+            "status": "Aguardando aprovação",
             "customer_name": customer_name,
             "phone": phone,
-            "delivery_method": delivery_method,
-            "address": address if delivery_method == "Entrega" else "",
+            "delivery_method": "Retirada",
+            "address": "",
             "payment_method": payment_method,
             "notes": " | ".join(note_parts)[:240],
             "items": normalized_items,
@@ -268,7 +317,9 @@ def create_order(payload: OrderInput):
     )
     return {
         "order": order,
-        "whatsapp_url": f"{WHATSAPP_URL}?text={quote(build_whatsapp_message(order))}",
+        "message": "Solicitação enviada para a Vanuza. Aguarde a confirmação pelo WhatsApp.",
+        "pickup_address": PICKUP_ADDRESS,
+        "pickup_reference": PICKUP_REFERENCE,
     }
 
 
@@ -286,7 +337,11 @@ def update_order_status(
 ):
     require_admin(x_admin_token)
     try:
-        return order_store.update_status(order_id, payload.status)
+        updated = order_store.update_status(order_id, payload.status)
+        return {
+            "order": updated,
+            "customer_whatsapp_url": build_customer_whatsapp_url(updated, payload.status),
+        }
     except ValueError:
         raise HTTPException(status_code=422, detail="Status de pedido inválido.")
     except KeyError:
@@ -295,4 +350,4 @@ def update_order_status(
 
 @app.get("/health", tags=["infra"])
 def health_check():
-    return {"status": "ok", "service": RESTAURANT_NAME, "ui": "brand-logo-9"}
+    return {"status": "ok", "service": RESTAURANT_NAME, "ui": "approval-flow-13"}
