@@ -10,12 +10,17 @@ class OrderStore:
     """Persistência de pedidos com PostgreSQL em produção e JSON local como fallback."""
 
     VALID_STATUSES = {
-        "Novo",
-        "Confirmado",
+        "Aguardando aprovação",
+        "Aceito",
+        "Recusado",
         "Em preparo",
-        "Saiu para entrega",
+        "Pronto para retirada",
         "Concluído",
         "Cancelado",
+        # Mantidos para compatibilidade com pedidos antigos.
+        "Novo",
+        "Confirmado",
+        "Saiu para entrega",
     }
 
     def __init__(self, path: str, database_url: Optional[str] = None) -> None:
@@ -50,7 +55,7 @@ class OrderStore:
                     """
                     CREATE TABLE IF NOT EXISTS orders (
                         id BIGSERIAL PRIMARY KEY,
-                        status TEXT NOT NULL DEFAULT 'Novo',
+                        status TEXT NOT NULL DEFAULT 'Aguardando aprovação',
                         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         updated_at TIMESTAMPTZ,
                         customer_name TEXT NOT NULL,
@@ -111,12 +116,17 @@ class OrderStore:
             return list(reversed(self._read()))
 
     def create_order(self, payload: Dict) -> Dict:
+        order_status = payload.get("status", "Aguardando aprovação")
+        if order_status not in self.VALID_STATUSES:
+            order_status = "Aguardando aprovação"
+
         if self.backend == "postgres":
             with self._connect() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
                         """
                         INSERT INTO orders (
+                            status,
                             customer_name,
                             phone,
                             delivery_method,
@@ -125,10 +135,11 @@ class OrderStore:
                             notes,
                             items,
                             total
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s)
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
                         RETURNING *
                         """,
                         (
+                            order_status,
                             payload["customer_name"],
                             payload["phone"],
                             payload["delivery_method"],
@@ -148,9 +159,9 @@ class OrderStore:
             next_id = max((order.get("id", 0) for order in orders), default=0) + 1
             order = {
                 "id": next_id,
-                "status": "Novo",
+                "status": order_status,
                 "created_at": datetime.now(timezone.utc).isoformat(),
-                **payload,
+                **{key: value for key, value in payload.items() if key != "status"},
             }
             orders.append(order)
             self._write(orders)
