@@ -31,7 +31,7 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 ORDERS_PATH = BASE_DIR / "data" / "orders.json"
 LOGO_PARTS_DIR = BASE_DIR / "assets" / "logo_parts"
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
-BRAND_CACHE_VERSION = "logo-vanuza-22"
+BRAND_CACHE_VERSION = "logo-vanuza-23"
 
 
 class OrderItemInput(BaseModel):
