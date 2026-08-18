@@ -18,13 +18,6 @@
   function clearCart() {
     if (!state.cart.length) return;
 
-    const itemCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
-    const confirmed = window.confirm(
-      `Remover ${itemCount} ${itemCount === 1 ? "item" : "itens"} do carrinho?`
-    );
-
-    if (!confirmed) return;
-
     state.cart = [];
     saveCart();
     renderCart();
@@ -58,7 +51,11 @@
     removeCartItem(removeButton.dataset.removeKey);
   });
 
-  clearCartButton.addEventListener("click", clearCart);
+  clearCartButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    clearCart();
+  });
 
   const observer = new MutationObserver(decorateCartItems);
   observer.observe(cartItemsRoot, { childList: true, subtree: true });
