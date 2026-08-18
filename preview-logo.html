@@ -30,7 +30,7 @@
   <footer class="shell"><div class="footer-brand"><img class="brand-logo" alt="Sabor da Casa by Vanuza" /><div><strong>Comida feita com carinho</strong><small>Cardápio do dia e encomendas da Vanuza.</small></div></div><div class="footer-meta"><span>© 2026 Sabor da Casa</span><span>Desenvolvido por K2 Tech</span></div></footer>
   <script>
     (async()=>{
-      const base='https://raw.githubusercontent.com/andersonjhonatan/restaurant-orders/preview/logo-vanuza/assets/logo_parts/';
+      const base='https://raw.githubusercontent.com/andersonjhonatan/restaurant-orders/preview-logo-vanuza/assets/logo_parts/';
       const parts=await Promise.all([1,2,3,4].map(n=>fetch(base+`new-logo-0${n}.txt`).then(r=>{if(!r.ok)throw new Error('Falha ao carregar logo');return r.text()})));
       const bin=atob(parts.join('').replace(/\s+/g,''));
       const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
