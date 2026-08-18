@@ -49,3 +49,48 @@ html body .admin-login::before {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 21l1.7-4.2A8.6 8.6 0 1 1 21 11.5Z'/%3E%3Cpath d='M8 11.5h.01M12 11.5h.01M16 11.5h.01'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.5 8.5 0 0 1-9 8.5 9.6 9.6 0 0 1-4-.9L3 21l1.7-4.2A8.6 8.6 0 1 1 21 11.5Z'/%3E%3Cpath d='M8 11.5h.01M12 11.5h.01M16 11.5h.01'/%3E%3C/svg%3E");
 }
+
+/* Carrinho: substitui os glifos antigos por um ícone vetorial limpo. */
+.cart-header-button,
+.drawer-header .icon-button--muted {
+  font-size: 0 !important;
+}
+
+.cart-header-button::before,
+.drawer-header .icon-button--muted::before,
+.empty-cart > span::before {
+  content: "";
+  display: block;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4h2l2.3 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L21 8H7'/%3E%3Ccircle cx='10' cy='20' r='1.4'/%3E%3Ccircle cx='18' cy='20' r='1.4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4h2l2.3 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L21 8H7'/%3E%3Ccircle cx='10' cy='20' r='1.4'/%3E%3Ccircle cx='18' cy='20' r='1.4'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.cart-header-button::before,
+.drawer-header .icon-button--muted::before {
+  width: 22px;
+  height: 22px;
+  margin: auto;
+}
+
+.cart-header-button b {
+  font-size: .55rem !important;
+}
+
+.empty-cart > span {
+  display: grid !important;
+  place-items: center;
+  font-size: 0 !important;
+  color: var(--olive2);
+}
+
+.empty-cart > span::before {
+  width: 34px;
+  height: 34px;
+}
