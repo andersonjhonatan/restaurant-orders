@@ -2,13 +2,16 @@ import base64
 import hmac
 import os
 import re
+from functools import lru_cache
+from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
 from urllib.parse import quote
 
 from fastapi import FastAPI, Header, HTTPException, Query, status
-from fastapi.responses import FileResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
+from PIL import Image
 from pydantic import BaseModel, Field
 
 from src.models.ingredient import Restriction
@@ -28,6 +31,7 @@ FRONTEND_DIR = BASE_DIR / "frontend"
 ORDERS_PATH = BASE_DIR / "data" / "orders.json"
 LOGO_PARTS_DIR = BASE_DIR / "assets" / "logo_parts"
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
+BRAND_CACHE_VERSION = "transparent-logo-21"
 
 
 class OrderItemInput(BaseModel):
@@ -67,7 +71,7 @@ order_store = OrderStore(str(ORDERS_PATH))
 restriction_options = {k: {"value": k} for k in Restriction._member_names_}
 
 
-def _brand_logo_bytes() -> bytes:
+def _raw_brand_logo_bytes() -> bytes:
     encoded = "".join(
         (LOGO_PARTS_DIR / f"new-logo-{index:02d}.txt")
         .read_text(encoding="utf-8")
@@ -75,6 +79,51 @@ def _brand_logo_bytes() -> bytes:
         for index in range(1, 5)
     )
     return base64.b64decode(encoded)
+
+
+@lru_cache(maxsize=1)
+def _brand_logo_bytes() -> bytes:
+    """Remove o fundo preto do arquivo da marca e devolve WebP com alpha."""
+    source = _raw_brand_logo_bytes()
+    with Image.open(BytesIO(source)) as logo:
+        image = logo.convert("RGBA")
+        transparent_pixels = []
+
+        for red, green, blue, alpha in image.getdata():
+            brightest = max(red, green, blue)
+            if brightest <= 32:
+                transparent_pixels.append((red, green, blue, 0))
+            elif brightest < 52:
+                edge_alpha = int(alpha * ((brightest - 32) / 20))
+                transparent_pixels.append((red, green, blue, edge_alpha))
+            else:
+                transparent_pixels.append((red, green, blue, alpha))
+
+        image.putdata(transparent_pixels)
+        output = BytesIO()
+        image.save(output, format="WEBP", lossless=True, method=4)
+        return output.getvalue()
+
+
+def _page_with_transparent_brand(filename: str) -> HTMLResponse:
+    html = (FRONTEND_DIR / filename).read_text(encoding="utf-8")
+    brand_override = f"""
+    <style id="transparent-brand-fix">
+      .header-brand-placeholder,
+      .footer-brand::before,
+      .admin-header .brand::before,
+      .admin-login::before {{
+        background-image: url('/brand/logo?v={BRAND_CACHE_VERSION}') !important;
+        background-color: transparent !important;
+      }}
+    </style>
+    <link rel="icon" type="image/webp" href="/brand/logo?v={BRAND_CACHE_VERSION}" />
+    """
+    html = html.replace("</head>", f"{brand_override}</head>")
+    return HTMLResponse(
+        html,
+        headers={"Cache-Control": "no-store, max-age=0"},
+    )
 
 
 def require_admin(x_admin_token: Optional[str]) -> None:
@@ -168,12 +217,12 @@ def build_customer_whatsapp_url(order: dict, new_status: str) -> str:
 
 @app.get("/", include_in_schema=False)
 def home():
-    return FileResponse(FRONTEND_DIR / "index.html")
+    return _page_with_transparent_brand("index.html")
 
 
 @app.get("/admin", include_in_schema=False)
 def admin_page():
-    return FileResponse(FRONTEND_DIR / "admin.html")
+    return _page_with_transparent_brand("admin.html")
 
 
 @app.get("/brand/logo", include_in_schema=False)
@@ -182,7 +231,7 @@ def get_restaurant_logo():
         return Response(
             content=_brand_logo_bytes(),
             media_type="image/webp",
-            headers={"Cache-Control": "public, max-age=86400"},
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
         )
     except (OSError, ValueError):
         return RedirectResponse(LOGO_URL, status_code=307)
@@ -204,7 +253,7 @@ def get_restaurant_info():
         "slogan": SLOGAN,
         "whatsapp": WHATSAPP,
         "whatsapp_url": WHATSAPP_URL,
-        "logo": "/brand/logo",
+        "logo": f"/brand/logo?v={BRAND_CACHE_VERSION}",
         "service": "Retirada",
         "pickup_address": PICKUP_ADDRESS,
         "pickup_reference": PICKUP_REFERENCE,
