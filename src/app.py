@@ -55,9 +55,9 @@ class StatusInput(BaseModel):
 app = FastAPI(
     title=RESTAURANT_NAME,
     description=(
-        "Sistema de cardápio, encomendas e solicitações do Sabor da Casa, administrado por Vanuza."
+        "Sistema de cardápio do dia, encomendas e pedidos do Sabor da Casa, administrado por Vanuza."
     ),
-    version="2.4.0",
+    version="2.5.0",
     contact={"name": OWNER_NAME, "url": WHATSAPP_URL},
 )
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -97,6 +97,13 @@ def _customer_whatsapp_number(phone: str) -> str:
     return f"55{digits}" if digits else ""
 
 
+def _is_preorder(order: dict) -> bool:
+    return any(
+        item.get("order_type") == "Encomenda"
+        for item in order.get("items", [])
+    )
+
+
 def build_customer_status_message(order: dict, new_status: str) -> str:
     customer = order.get("customer_name", "cliente")
     order_id = order.get("id", "")
@@ -106,7 +113,7 @@ def build_customer_status_message(order: dict, new_status: str) -> str:
         lines = [
             f"Olá, {customer}! Aqui é a Vanuza, do Sabor da Casa. 😊",
             "",
-            f"Sua solicitação #{order_id} foi aceita e vou conseguir preparar seu pedido.",
+            f"Sua encomenda #{order_id} foi aceita e vou conseguir preparar seu pedido.",
         ]
         if schedule:
             lines.append(f"Data/horário solicitado: {schedule}")
@@ -126,7 +133,7 @@ def build_customer_status_message(order: dict, new_status: str) -> str:
         lines = [
             f"Olá, {customer}! Aqui é a Vanuza, do Sabor da Casa.",
             "",
-            f"Infelizmente não vou conseguir atender a solicitação #{order_id} na data/horário pedido.",
+            f"Infelizmente não vou conseguir atender a encomenda #{order_id} na data/horário pedido.",
         ]
         if schedule:
             lines.append(f"Solicitação: {schedule}")
@@ -201,7 +208,8 @@ def get_restaurant_info():
         "service": "Retirada",
         "pickup_address": PICKUP_ADDRESS,
         "pickup_reference": PICKUP_REFERENCE,
-        "approval_required": True,
+        "today_menu_requires_approval": False,
+        "preorder_requires_approval": True,
     }
 
 
@@ -224,7 +232,7 @@ def make_dish_order(dish_name: str):
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="O prato não pode ser preparado por falta de ingredientes.",
         )
-    return {"message": "Solicitação registrada", "dish_name": dish_name}
+    return {"message": "Pedido registrado", "dish_name": dish_name}
 
 
 @app.post("/api/orders", tags=["pedidos"], status_code=status.HTTP_201_CREATED)
@@ -246,16 +254,13 @@ def create_order(payload: OrderInput):
             status_code=422,
             detail="O Sabor da Casa trabalha somente com retirada no local.",
         )
-    if not requested_date:
-        raise HTTPException(status_code=422, detail="Escolha a data desejada para a retirada.")
-    if not requested_time:
-        raise HTTPException(status_code=422, detail="Escolha o horário desejado para a retirada.")
     if not payload.items:
         raise HTTPException(status_code=422, detail="Adicione ao menos um prato.")
 
     available_menu = {item["dish_name"]: item for item in menu_builder.get_main_menu()}
     normalized_items = []
     total = 0.0
+    order_types = set()
 
     for requested in payload.items:
         dish = available_menu.get(requested.dish_name)
@@ -283,6 +288,7 @@ def create_order(payload: OrderInput):
         subtotal = round(unit_price * requested.quantity, 2)
         total += subtotal
         order_type = dish.get("order_type", "Hoje")
+        order_types.add(order_type)
         normalized_items.append(
             {
                 "dish_name": dish["dish_name"],
@@ -297,14 +303,37 @@ def create_order(payload: OrderInput):
             }
         )
 
-    schedule = f"Retirada desejada para {requested_date} às {requested_time}"
-    note_parts = [schedule]
+    if len(order_types) != 1:
+        raise HTTPException(
+            status_code=422,
+            detail="Finalize o cardápio do dia e as encomendas em pedidos separados.",
+        )
+
+    order_type = next(iter(order_types))
+    is_preorder = order_type == "Encomenda"
+
+    if is_preorder:
+        if not requested_date:
+            raise HTTPException(
+                status_code=422,
+                detail="Escolha a data desejada para a encomenda.",
+            )
+        if not requested_time:
+            raise HTTPException(
+                status_code=422,
+                detail="Escolha o horário desejado para a encomenda.",
+            )
+
+    note_parts = []
+    if is_preorder:
+        note_parts.append(f"Encomenda desejada para {requested_date} às {requested_time}")
     if notes:
         note_parts.append(notes[:200])
 
+    initial_status = "Aguardando aprovação" if is_preorder else "Confirmado"
     order = order_store.create_order(
         {
-            "status": "Aguardando aprovação",
+            "status": initial_status,
             "customer_name": customer_name,
             "phone": phone,
             "delivery_method": "Retirada",
@@ -315,9 +344,17 @@ def create_order(payload: OrderInput):
             "total": round(total, 2),
         }
     )
+
+    if is_preorder:
+        message = "Encomenda enviada para a Vanuza. Aguarde a confirmação pelo WhatsApp."
+    else:
+        message = "Pedido confirmado para retirada hoje no Sabor da Casa."
+
     return {
         "order": order,
-        "message": "Solicitação enviada para a Vanuza. Aguarde a confirmação pelo WhatsApp.",
+        "order_type": order_type,
+        "approval_required": is_preorder,
+        "message": message,
         "pickup_address": PICKUP_ADDRESS,
         "pickup_reference": PICKUP_REFERENCE,
     }
@@ -336,6 +373,39 @@ def update_order_status(
     x_admin_token: Optional[str] = Header(default=None),
 ):
     require_admin(x_admin_token)
+
+    current = next(
+        (order for order in order_store.list_orders() if order.get("id") == order_id),
+        None,
+    )
+    if current is None:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado.")
+
+    if _is_preorder(current):
+        allowed_statuses = {
+            "Aguardando aprovação",
+            "Aceito",
+            "Recusado",
+            "Em preparo",
+            "Pronto para retirada",
+            "Concluído",
+            "Cancelado",
+        }
+    else:
+        allowed_statuses = {
+            "Confirmado",
+            "Em preparo",
+            "Pronto para retirada",
+            "Concluído",
+            "Cancelado",
+        }
+
+    if payload.status not in allowed_statuses:
+        raise HTTPException(
+            status_code=422,
+            detail="Esse status não é válido para este tipo de pedido.",
+        )
+
     try:
         updated = order_store.update_status(order_id, payload.status)
         return {
@@ -350,4 +420,4 @@ def update_order_status(
 
 @app.get("/health", tags=["infra"])
 def health_check():
-    return {"status": "ok", "service": RESTAURANT_NAME, "ui": "approval-flow-13"}
+    return {"status": "ok", "service": RESTAURANT_NAME, "ui": "order-flow-14"}
