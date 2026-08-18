@@ -1,35 +1,45 @@
-/* Refinamento visual da marca Sabor da Casa — mantém a identidade bege/terracota/oliva */
+/* Refinamento visual da marca Sabor da Casa — identidade bege/terracota/oliva */
 .app-header{
-  min-height:156px;
-  padding:18px 0 8px;
-  grid-template-columns:50px minmax(0,1fr) 50px;
+  position:relative;
+  min-height:180px;
+  padding:14px 0 6px;
+  grid-template-columns:52px minmax(0,1fr) 52px;
   align-items:center;
 }
-
 .logo-lockup{
+  position:relative;
+  z-index:1;
   justify-self:center;
-  width:156px;
-  height:156px;
+  width:min(230px,55vw);
+  height:170px;
   display:grid;
   place-items:center;
   overflow:visible;
   border-radius:0;
   background:transparent;
-  filter:drop-shadow(0 10px 22px rgba(83,49,28,.12));
 }
-
+.logo-lockup::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:32px 4px 22px;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(255,250,242,.92) 0%,rgba(247,231,204,.46) 48%,rgba(247,231,204,0) 74%);
+  filter:blur(8px);
+  opacity:.9;
+}
 .logo-lockup img{
-  width:156px;
-  height:156px;
-  max-width:none;
+  width:100%;
+  height:100%;
+  max-width:100%;
   object-fit:contain;
   object-position:center;
+  border:0;
   border-radius:0;
-  clip-path:circle(50% at 50% 50%);
+  clip-path:none;
   transform:none;
-  filter:none;
+  filter:drop-shadow(0 12px 20px rgba(83,49,28,.13));
 }
-
 .header-icon{
   justify-self:end;
   width:46px;
@@ -37,8 +47,8 @@
   border-color:rgba(94,61,38,.15);
   background:rgba(255,250,242,.92);
   color:var(--olive2);
+  box-shadow:0 8px 22px rgba(92,59,34,.08);
 }
-
 .header-icon svg{
   width:22px;
   height:22px;
@@ -49,25 +59,12 @@
   stroke-linecap:round;
   stroke-linejoin:round;
 }
+.home{padding-top:0}
+.search-bar{margin-top:-4px}
 
-.home{padding-top:2px}
-.search-bar{margin-top:0}
+body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.section-line h1,.section-line h2,.screen-heading h2,.featured-hero-card__copy h3,.product-title-row h2,.drawer-header h2,.footer-brand strong{font-family:"Playfair Display",Georgia,"Times New Roman",serif}
 
-/* Tipografia principal */
-body{
-  font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-.section-line h1,
-.section-line h2,
-.screen-heading h2,
-.featured-hero-card__copy h3,
-.product-title-row h2,
-.drawer-header h2,
-.footer-brand strong{
-  font-family:"Playfair Display",Georgia,"Times New Roman",serif;
-}
-
-/* Área de contato: telefone legível e profissional, sem fonte decorativa */
 .contact-card{
   margin-top:8px;
   margin-bottom:30px;
@@ -77,50 +74,11 @@ body{
   background:linear-gradient(145deg,rgba(255,250,242,.98),rgba(247,231,204,.94));
   box-shadow:0 16px 38px rgba(92,59,34,.09);
 }
-.contact-card>div small{
-  display:block;
-  color:var(--olive2);
-  font-size:.68rem;
-  font-weight:800;
-  letter-spacing:.075em;
-  text-transform:uppercase;
-}
-.contact-card>div strong{
-  display:block;
-  margin-top:8px;
-  color:var(--rust2);
-  font-family:"DM Sans","Inter",system-ui,sans-serif;
-  font-size:clamp(1.65rem,7vw,2.05rem);
-  font-weight:800;
-  line-height:1.08;
-  letter-spacing:-.035em;
-  font-variant-numeric:tabular-nums;
-}
-.contact-card p{
-  max-width:620px;
-  margin:10px 0 0;
-  color:var(--muted);
-  font-size:.82rem;
-  line-height:1.55;
-}
-.contact-card>a{
-  min-height:54px;
-  margin-top:18px;
-  padding:0 18px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  border-radius:15px;
-  background:var(--rust);
-  color:#fff;
-  font-family:"DM Sans","Inter",system-ui,sans-serif;
-  font-size:.96rem;
-  font-weight:700;
-  letter-spacing:-.01em;
-  box-shadow:0 12px 26px rgba(185,74,28,.19);
-}
+.contact-card>div small{display:block;color:var(--olive2);font-size:.68rem;font-weight:800;letter-spacing:.075em;text-transform:uppercase}
+.contact-card>div strong{display:block;margin-top:8px;color:var(--rust2);font-family:"DM Sans","Inter",system-ui,sans-serif;font-size:clamp(1.65rem,7vw,2.05rem);font-weight:800;line-height:1.08;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.contact-card p{max-width:620px;margin:10px 0 0;color:var(--muted);font-size:.82rem;line-height:1.55}
+.contact-card>a{min-height:54px;margin-top:18px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;border-radius:15px;background:var(--rust);color:#fff;font-family:"DM Sans","Inter",system-ui,sans-serif;font-size:.96rem;font-weight:700;letter-spacing:-.01em;box-shadow:0 12px 26px rgba(185,74,28,.19)}
 
-/* Rodapé organizado como um bloco de marca, em vez de elementos soltos */
 .footer{
   margin-top:34px;
   margin-bottom:94px;
@@ -129,137 +87,48 @@ body{
   gap:18px;
   border:1px solid var(--line);
   border-radius:24px;
-  background:rgba(255,250,242,.78);
+  background:rgba(255,250,242,.8);
   box-shadow:0 12px 32px rgba(92,59,34,.065);
 }
-.footer-brand{
-  display:grid;
-  grid-template-columns:68px minmax(0,1fr);
-  align-items:center;
-  gap:14px;
-}
-.footer-brand>img{
-  width:68px;
-  height:68px;
-  max-width:none;
-  object-fit:contain;
-  object-position:center;
-  border-radius:0;
-  clip-path:none;
-  transform:none;
-  filter:drop-shadow(0 6px 14px rgba(82,49,27,.1));
-}
-.footer-brand strong{
-  display:block;
-  color:var(--rust2);
-  font-size:1.14rem;
-  line-height:1.08;
-  letter-spacing:-.015em;
-}
-.footer-brand small{
-  display:block;
-  margin-top:5px;
-  color:var(--muted);
-  font-size:.72rem;
-  line-height:1.45;
-}
-.footer-meta{
-  margin-top:0;
-  padding-top:14px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-wrap:wrap;
-  gap:8px 12px;
-  border-top:1px solid var(--line);
-  color:#8f7a6d;
-  font-size:.62rem;
-  text-align:center;
-}
+.footer-brand{display:grid;grid-template-columns:94px minmax(0,1fr);align-items:center;gap:14px}
+.footer-brand>img{width:94px;height:82px;max-width:100%;object-fit:contain;object-position:center;border:0;border-radius:0;clip-path:none;transform:none;filter:drop-shadow(0 7px 15px rgba(82,49,27,.11))}
+.footer-brand strong{display:block;color:var(--rust2);font-size:1.08rem;line-height:1.1;letter-spacing:-.015em}
+.footer-brand small{display:block;margin-top:5px;color:var(--muted);font-size:.72rem;line-height:1.45}
+.footer-meta{margin-top:0;padding-top:14px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 12px;border-top:1px solid var(--line);color:#8f7a6d;font-size:.62rem;text-align:center}
 .footer-meta small{font-size:inherit}
-.footer-meta small+small::before{
-  content:"•";
-  margin-right:12px;
-  color:var(--tan);
-}
+.footer-meta small+small::before{content:"•";margin-right:12px;color:var(--tan)}
 
-@media (max-width:560px){
-  .app-header{
-    min-height:146px;
-    padding:12px 0 4px;
-    grid-template-columns:46px minmax(0,1fr) 46px;
-  }
-  .logo-lockup,
-  .logo-lockup img{
-    width:142px;
-    height:142px;
-  }
-  .header-icon{
-    width:44px;
-    height:44px;
-  }
-  .home{padding-top:0}
+@media(max-width:560px){
+  .app-header{min-height:168px;padding:8px 0 2px;grid-template-columns:44px minmax(0,1fr) 44px}
+  .logo-lockup{width:min(210px,58vw);height:158px}
+  .logo-lockup::before{inset:30px 0 20px}
+  .header-icon{width:43px;height:43px}
+  .search-bar{margin-top:-6px}
   .contact-card{padding:20px 18px}
   .contact-card>div strong{font-size:1.72rem}
-  .footer{
-    width:calc(100% - 28px);
-    padding:20px 18px 17px;
-  }
-  .footer-brand{
-    grid-template-columns:62px minmax(0,1fr);
-    gap:12px;
-  }
-  .footer-brand>img{
-    width:62px;
-    height:62px;
-  }
-  .footer-brand strong{font-size:1.05rem}
-  .footer-brand small{font-size:.7rem}
+  .footer{width:calc(100% - 28px);padding:18px 17px 16px}
+  .footer-brand{grid-template-columns:86px minmax(0,1fr);gap:12px}
+  .footer-brand>img{width:86px;height:76px}
+  .footer-brand strong{font-size:1rem}
+  .footer-brand small{font-size:.69rem}
   .footer-meta{font-size:.59rem}
 }
-
-@media (max-width:380px){
-  .app-header{min-height:134px}
-  .logo-lockup,
-  .logo-lockup img{
-    width:130px;
-    height:130px;
-  }
+@media(max-width:380px){
+  .app-header{min-height:154px}
+  .logo-lockup{width:190px;height:145px}
   .contact-card>div strong{font-size:1.55rem}
-  .footer-meta{
-    flex-direction:column;
-    gap:4px;
-  }
+  .footer-brand{grid-template-columns:78px minmax(0,1fr)}
+  .footer-brand>img{width:78px;height:70px}
+  .footer-meta{flex-direction:column;gap:4px}
   .footer-meta small+small::before{display:none}
 }
-
-@media (min-width:760px){
-  .app-header{min-height:172px}
-  .logo-lockup,
-  .logo-lockup img{
-    width:168px;
-    height:168px;
-  }
-  .contact-card{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) auto;
-    align-items:center;
-    gap:24px;
-  }
-  .contact-card>a{
-    min-width:220px;
-    margin-top:0;
-  }
-  .footer{
-    grid-template-columns:1fr auto;
-    align-items:center;
-    padding:22px 24px;
-  }
-  .footer-meta{
-    min-width:310px;
-    padding-top:0;
-    padding-left:24px;
-    border-top:0;
-    border-left:1px solid var(--line);
-  }
+@media(min-width:760px){
+  .app-header{min-height:194px}
+  .logo-lockup{width:250px;height:184px}
+  .contact-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px}
+  .contact-card>a{min-width:220px;margin-top:0}
+  .footer{grid-template-columns:1fr auto;align-items:center;padding:22px 24px}
+  .footer-brand{grid-template-columns:108px minmax(0,1fr)}
+  .footer-brand>img{width:108px;height:94px}
+  .footer-meta{min-width:310px;padding-top:0;padding-left:24px;border-top:0;border-left:1px solid var(--line)}
 }
