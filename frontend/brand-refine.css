@@ -59,7 +59,13 @@
   stroke-linecap:round;
   stroke-linejoin:round;
 }
-.home{padding-top:10px}
+
+/*
+  O espaço entre a marca e a busca é controlado aqui, separado do tamanho
+  da logo. Assim o cabeçalho não precisa de margens negativas e permanece
+  consistente em celular, tablet e desktop.
+*/
+.home{padding-top:22px}
 .search-bar{margin-top:0}
 
 body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -110,7 +116,7 @@ body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"S
   }
   .logo-lockup::before{inset:27px 0 20px}
   .header-icon{width:43px;height:43px}
-  .home{padding-top:10px}
+  .home{padding-top:18px}
   .search-bar{margin-top:0}
   .contact-card{padding:20px 18px}
   .contact-card>div strong{font-size:1.72rem}
@@ -131,7 +137,7 @@ body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"S
     height:132px;
   }
   .logo-lockup::before{inset:24px 0 18px}
-  .home{padding-top:10px}
+  .home{padding-top:16px}
   .search-bar{margin-top:0}
   .contact-card>div strong{font-size:1.55rem}
   .footer-brand{grid-template-columns:78px minmax(0,1fr)}
@@ -142,7 +148,7 @@ body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"S
 @media(min-width:760px){
   .app-header{min-height:210px;padding-bottom:18px}
   .logo-lockup{width:250px;height:184px}
-  .home{padding-top:10px}
+  .home{padding-top:28px}
   .contact-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px}
   .contact-card>a{min-width:220px;margin-top:0}
   .footer{grid-template-columns:1fr auto;align-items:center;padding:22px 24px}
