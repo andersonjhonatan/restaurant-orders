@@ -1,8 +1,8 @@
 /* Refinamento visual da marca Sabor da Casa — identidade bege/terracota/oliva */
 .app-header{
   position:relative;
-  min-height:198px;
-  padding:18px 0 16px;
+  min-height:82px;
+  padding:12px 0 8px;
   grid-template-columns:52px minmax(0,1fr) 52px;
   align-items:center;
 }
@@ -51,8 +51,7 @@
   stroke-linejoin:round;
 }
 
-/* O espaço entre a marca e a busca é independente do tamanho da logo. */
-.home{padding-top:22px}
+.home{padding-top:8px}
 .search-bar{margin-top:0}
 
 body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -83,7 +82,7 @@ body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"S
   background:rgba(255,250,242,.8);
   box-shadow:0 12px 32px rgba(92,59,34,.065);
 }
-.footer-brand{display:grid;grid-template-columns:94px minmax(0,1fr);align-items:center;gap:14px}
+.footer-brand{display:grid;grid-template-columns:1fr;align-items:center;gap:14px}
 .footer-brand>img{width:94px;height:82px;max-width:100%;object-fit:contain;object-position:center;border:0;border-radius:0;clip-path:none;transform:none;filter:none}
 .footer-brand strong{display:block;color:var(--rust2);font-size:1.08rem;line-height:1.1;letter-spacing:-.015em}
 .footer-brand small{display:block;margin-top:5px;color:var(--muted);font-size:.72rem;line-height:1.45}
@@ -93,8 +92,8 @@ body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"S
 
 @media(max-width:560px){
   .app-header{
-    min-height:178px;
-    padding:10px 0 14px;
+    min-height:72px;
+    padding:8px 0 8px;
     grid-template-columns:44px minmax(0,1fr) 44px;
   }
   .logo-lockup{
@@ -102,12 +101,12 @@ body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"S
     height:144px;
   }
   .header-icon{width:43px;height:43px}
-  .home{padding-top:18px}
+  .home{padding-top:8px}
   .search-bar{margin-top:0}
   .contact-card{padding:20px 18px}
   .contact-card>div strong{font-size:1.72rem}
   .footer{width:calc(100% - 28px);padding:18px 17px 16px}
-  .footer-brand{grid-template-columns:86px minmax(0,1fr);gap:12px}
+  .footer-brand{grid-template-columns:1fr;gap:12px}
   .footer-brand>img{width:86px;height:76px}
   .footer-brand strong{font-size:1rem}
   .footer-brand small{font-size:.69rem}
@@ -115,29 +114,29 @@ body{font-family:"DM Sans","Inter",system-ui,-apple-system,BlinkMacSystemFont,"S
 }
 @media(max-width:380px){
   .app-header{
-    min-height:166px;
-    padding:8px 0 14px;
+    min-height:68px;
+    padding:6px 0 8px;
   }
   .logo-lockup{
     width:min(178px,54vw);
     height:132px;
   }
-  .home{padding-top:16px}
+  .home{padding-top:8px}
   .search-bar{margin-top:0}
   .contact-card>div strong{font-size:1.55rem}
-  .footer-brand{grid-template-columns:78px minmax(0,1fr)}
+  .footer-brand{grid-template-columns:1fr}
   .footer-brand>img{width:78px;height:70px}
   .footer-meta{flex-direction:column;gap:4px}
   .footer-meta small+small::before{display:none}
 }
 @media(min-width:760px){
-  .app-header{min-height:210px;padding-bottom:18px}
+  .app-header{min-height:88px;padding-bottom:10px}
   .logo-lockup{width:250px;height:184px}
-  .home{padding-top:28px}
+  .home{padding-top:10px}
   .contact-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px}
   .contact-card>a{min-width:220px;margin-top:0}
   .footer{grid-template-columns:1fr auto;align-items:center;padding:22px 24px}
-  .footer-brand{grid-template-columns:108px minmax(0,1fr)}
+  .footer-brand{grid-template-columns:1fr}
   .footer-brand>img{width:108px;height:94px}
   .footer-meta{min-width:310px;padding-top:0;padding-left:24px;border-top:0;border-left:1px solid var(--line)}
 }
