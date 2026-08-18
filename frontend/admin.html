@@ -6,17 +6,17 @@
   <meta name="theme-color" content="#fbefd9" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Painel de pedidos | Sabor da Casa</title>
-  <link rel="icon" href="/brand/logo?v=brand-logo-9" />
+  <link rel="icon" href="/brand/logo?v=order-flow-14" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=brand-logo-9" />
-  <link rel="stylesheet" href="/static/admin.css?v=brand-logo-9" />
+  <link rel="stylesheet" href="/static/styles.css?v=order-flow-14" />
+  <link rel="stylesheet" href="/static/admin.css?v=order-flow-14" />
 </head>
 <body class="admin-body">
   <header class="admin-header">
     <a class="brand" href="/">
-      <span class="brand__mark"><img src="/brand/logo?v=brand-logo-9" alt="Sabor da Casa" /></span>
+      <span class="brand__mark"><img src="/brand/logo?v=order-flow-14" alt="Sabor da Casa" /></span>
       <span class="brand__text"><strong>Sabor da Casa</strong><small>Painel da Vanuza</small></span>
     </a>
     <a class="button button--ghost" href="/">Ver cardápio <span>↗</span></a>
@@ -24,10 +24,10 @@
 
   <main class="admin-shell">
     <section id="loginCard" class="admin-login">
-      <div class="admin-login__seal"><img src="/brand/logo?v=brand-logo-9" alt="Sabor da Casa by Vanuza" /></div>
+      <div class="admin-login__seal"><img src="/brand/logo?v=order-flow-14" alt="Sabor da Casa by Vanuza" /></div>
       <span class="eyebrow"><span></span> acesso reservado</span>
       <h1>Gestão simples.<br /><em>Pedidos organizados.</em></h1>
-      <p>Entre com o token administrativo para acompanhar os pedidos do Sabor da Casa.</p>
+      <p>Entre com o token administrativo para acompanhar pedidos do dia e encomendas.</p>
       <form id="tokenForm">
         <label class="form-field">Token administrativo
           <input id="adminToken" type="password" autocomplete="current-password" required placeholder="Digite o token" />
@@ -43,7 +43,7 @@
         <div>
           <span class="eyebrow"><span></span> gestão de pedidos</span>
           <h1>Olá, Vanuza 👋</h1>
-          <p>Veja o que entrou, acompanhe o preparo e mantenha cada pedido atualizado.</p>
+          <p>Pedidos do cardápio do dia já entram confirmados. Somente as encomendas precisam de aprovação.</p>
         </div>
         <div class="dashboard-actions">
           <button id="refreshOrders" class="button button--soft" type="button">Atualizar</button>
@@ -53,15 +53,13 @@
 
       <div class="stats-grid">
         <article><small>Total de pedidos</small><strong id="statTotal">0</strong><span>registrados</span></article>
-        <article><small>Novos</small><strong id="statNew">0</strong><span>aguardando atenção</span></article>
+        <article><small>Encomendas aguardando</small><strong id="statNew">0</strong><span>precisam de resposta</span></article>
         <article><small>Em preparo</small><strong id="statPreparing">0</strong><span>na cozinha</span></article>
         <article><small>Concluídos</small><strong id="statDone">0</strong><span>finalizados</span></article>
       </div>
 
       <div class="orders-toolbar">
-        <label><span>Filtrar por status</span><select id="statusFilter">
-          <option value="">Todos os pedidos</option><option value="Novo">Novo</option><option value="Confirmado">Confirmado</option><option value="Em preparo">Em preparo</option><option value="Saiu para entrega">Saiu para entrega</option><option value="Concluído">Concluído</option><option value="Cancelado">Cancelado</option>
-        </select></label>
+        <label><span>Filtrar por status</span><select id="statusFilter"><option value="">Todos os pedidos e encomendas</option></select></label>
         <span id="lastUpdated" class="last-updated"></span>
       </div>
 
@@ -72,6 +70,6 @@
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/static/admin.js?v=brand-logo-9" defer></script>
+  <script src="/static/admin.js?v=order-flow-14" defer></script>
 </body>
 </html>
