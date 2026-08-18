@@ -1,3 +1,4 @@
+import base64
 import hmac
 import os
 from pathlib import Path
@@ -5,7 +6,7 @@ from typing import List, Optional
 from urllib.parse import quote
 
 from fastapi import FastAPI, Header, HTTPException, Query, status
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -22,6 +23,7 @@ LOGO_URL = "https://raw.githubusercontent.com/andersonjhonatan/restaurant-orders
 BASE_DIR = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = BASE_DIR / "frontend"
 ORDERS_PATH = BASE_DIR / "data" / "orders.json"
+LOGO_PARTS_DIR = BASE_DIR / "assets" / "logo_parts"
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 
 
@@ -52,7 +54,7 @@ app = FastAPI(
     description=(
         "Sistema de cardápio, encomendas e pedidos do Sabor da Casa, administrado por Vanuza."
     ),
-    version="2.2.1",
+    version="2.3.0",
     contact={"name": OWNER_NAME, "url": WHATSAPP_URL},
 )
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
@@ -62,13 +64,22 @@ order_store = OrderStore(str(ORDERS_PATH))
 restriction_options = {k: {"value": k} for k in Restriction._member_names_}
 
 
+def _brand_logo_bytes() -> bytes:
+    encoded = "".join(
+        (LOGO_PARTS_DIR / f"new-logo-{index:02d}.txt")
+        .read_text(encoding="utf-8")
+        .strip()
+        for index in range(1, 5)
+    )
+    return base64.b64decode(encoded)
+
+
 def require_admin(x_admin_token: Optional[str]) -> None:
     if not ADMIN_TOKEN:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Configure a variável de ambiente ADMIN_TOKEN para habilitar o painel.",
         )
-
     if not x_admin_token or not hmac.compare_digest(x_admin_token, ADMIN_TOKEN):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -84,10 +95,8 @@ def build_whatsapp_message(order: dict) -> str:
         f"Telefone: {order['phone']}",
         f"Recebimento: {order['delivery_method']}",
     ]
-
     if order.get("address"):
         lines.append(f"Endereço: {order['address']}")
-
     lines.extend(["", "Itens:"])
     for item in order["items"]:
         option = f" — {item['option_label']}" if item.get("option_label") else ""
@@ -95,18 +104,9 @@ def build_whatsapp_message(order: dict) -> str:
             f"- {item['quantity']}x {item.get('display_name', item['dish_name'])}{option} "
             f"(R$ {item['subtotal']:.2f})"
         )
-
-    lines.extend(
-        [
-            "",
-            f"Total: R$ {order['total']:.2f}",
-            f"Pagamento: {order['payment_method']}",
-        ]
-    )
-
+    lines.extend(["", f"Total: R$ {order['total']:.2f}", f"Pagamento: {order['payment_method']}"])
     if order.get("notes"):
         lines.extend(["", f"Observação: {order['notes']}"])
-
     return "\n".join(lines)
 
 
@@ -122,14 +122,21 @@ def admin_page():
 
 @app.get("/brand/logo", include_in_schema=False)
 def get_restaurant_logo():
-    return RedirectResponse(LOGO_URL, status_code=307)
+    try:
+        return Response(
+            content=_brand_logo_bytes(),
+            media_type="image/webp",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    except (OSError, ValueError):
+        return RedirectResponse(LOGO_URL, status_code=307)
 
 
 @app.get("/favicon.ico", include_in_schema=False)
 @app.get("/favicon.svg", include_in_schema=False)
 @app.get("/favicon.png", include_in_schema=False)
 def favicon():
-    return RedirectResponse(LOGO_URL, status_code=307)
+    return get_restaurant_logo()
 
 
 @app.get("/info", tags=["restaurante"])
@@ -147,9 +154,7 @@ def get_restaurant_info():
 
 @app.get("/menu", tags=["menu"])
 @app.get("/api/menu", tags=["menu"])
-def get_menu(
-    restriction: str = Query(default="", examples=restriction_options)
-):
+def get_menu(restriction: str = Query(default="", examples=restriction_options)):
     return menu_builder.get_main_menu(
         restriction=Restriction._member_map_.get(restriction)
     )
@@ -157,20 +162,15 @@ def get_menu(
 
 @app.post("/order", tags=["compatibilidade"], status_code=status.HTTP_201_CREATED)
 def make_dish_order(dish_name: str):
-    """Mantém compatibilidade com o endpoint original do projeto."""
     try:
         menu_builder.make_order(dish_name)
     except ValueError as err:
         if str(err) == "Dish does not exist":
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=str(err),
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="O prato não pode ser preparado por falta de ingredientes.",
         )
-
     return {"message": "Pedido registrado", "dish_name": dish_name}
 
 
@@ -196,9 +196,7 @@ def create_order(payload: OrderInput):
     if not payload.items:
         raise HTTPException(status_code=422, detail="Adicione ao menos um prato.")
 
-    available_menu = {
-        item["dish_name"]: item for item in menu_builder.get_main_menu()
-    }
+    available_menu = {item["dish_name"]: item for item in menu_builder.get_main_menu()}
     normalized_items = []
     total = 0.0
     has_preorder = False
@@ -215,8 +213,7 @@ def create_order(payload: OrderInput):
         selected_option = None
         if requested.option:
             selected_option = next(
-                (option for option in options if option["id"] == requested.option),
-                None,
+                (option for option in options if option["id"] == requested.option), None
             )
             if selected_option is None:
                 raise HTTPException(
@@ -226,14 +223,11 @@ def create_order(payload: OrderInput):
         elif options:
             selected_option = options[0]
 
-        unit_price = float(
-            selected_option["price"] if selected_option else dish["price"]
-        )
+        unit_price = float(selected_option["price"] if selected_option else dish["price"])
         subtotal = round(unit_price * requested.quantity, 2)
         total += subtotal
         order_type = dish.get("order_type", "Hoje")
         has_preorder = has_preorder or order_type == "Encomenda"
-
         normalized_items.append(
             {
                 "dish_name": dish["dish_name"],
@@ -249,10 +243,7 @@ def create_order(payload: OrderInput):
         )
 
     if has_preorder and not requested_date:
-        raise HTTPException(
-            status_code=422,
-            detail="Escolha a data desejada para a encomenda.",
-        )
+        raise HTTPException(status_code=422, detail="Escolha a data desejada para a encomenda.")
 
     note_parts = []
     if has_preorder:
@@ -275,11 +266,9 @@ def create_order(payload: OrderInput):
             "total": round(total, 2),
         }
     )
-
-    message = build_whatsapp_message(order)
     return {
         "order": order,
-        "whatsapp_url": f"{WHATSAPP_URL}?text={quote(message)}",
+        "whatsapp_url": f"{WHATSAPP_URL}?text={quote(build_whatsapp_message(order))}",
     }
 
 
@@ -296,7 +285,6 @@ def update_order_status(
     x_admin_token: Optional[str] = Header(default=None),
 ):
     require_admin(x_admin_token)
-
     try:
         return order_store.update_status(order_id, payload.status)
     except ValueError:
@@ -307,4 +295,4 @@ def update_order_status(
 
 @app.get("/health", tags=["infra"])
 def health_check():
-    return {"status": "ok", "service": RESTAURANT_NAME}
+    return {"status": "ok", "service": RESTAURANT_NAME, "ui": "brand-logo-9"}
