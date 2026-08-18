@@ -9,6 +9,9 @@ const state = {
   productQuantity: 1,
 };
 
+const PICKUP_ADDRESS = "Rua Joaquim Deodato, 276";
+const PICKUP_REFERENCE = "Vizinho à casa de Deca Cabeleireiro";
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -134,7 +137,7 @@ function openProduct(dishName) {
   elements.productImage.alt = dishLabel(dish);
   elements.productBadge.textContent = dish.badge || "Feito em casa";
   elements.productCategory.textContent = dish.category || "Cardápio";
-  elements.productPreparation.textContent = dish.order_type === "Encomenda" ? "Sob encomenda" : "Disponível hoje";
+  elements.productPreparation.textContent = "Sujeito à aprovação";
   elements.productLeadTime.textContent = dish.lead_time || "";
   elements.productTitle.textContent = dishLabel(dish);
   elements.productDescription.textContent = dish.description || "Prato preparado com cuidado.";
@@ -142,7 +145,7 @@ function openProduct(dishName) {
   elements.productIngredients.innerHTML = (dish.ingredients || []).map((ingredient) => `<li>${escapeHtml(ingredient)}</li>`).join("");
   const accompaniments = dish.accompaniments || [];
   elements.productAccompaniments.innerHTML = accompaniments.length ? accompaniments.map((item) => `<span>${escapeHtml(item)}</span>`).join("") : "<small>Consulte a Vanuza.</small>";
-  elements.productFootnote.textContent = dish.order_type === "Encomenda" ? `${dish.lead_time || "Encomendar com antecedência"}. A data será escolhida no fechamento.` : "Disponibilidade sujeita ao cardápio do dia.";
+  elements.productFootnote.textContent = "A solicitação só fica confirmada depois que a Vanuza aceitar pelo WhatsApp.";
   updateProductOption(state.selectedOptionId);
   elements.productDialog.showModal();
   document.body.classList.add("no-scroll");
@@ -168,7 +171,7 @@ function addToCart(dish, option, quantity = 1) {
   const existing = state.cart.find((item) => item.key === key);
   if (existing) { existing.quantity += quantity; existing.price = Number(option.price); }
   else state.cart.push({ key, name: dish.dish_name, label: dishLabel(dish), optionId: option.id, optionLabel: option.label, serves: option.serves, orderType: dish.order_type, price: Number(option.price), quantity });
-  saveCart(); renderCart(); showToast(`${dishLabel(dish)} adicionado ao pedido`);
+  saveCart(); renderCart(); showToast(`${dishLabel(dish)} adicionado à solicitação`);
 }
 
 function changeQuantity(key, delta) {
@@ -184,7 +187,7 @@ function renderCartKinds() {
   const today = state.cart.filter((item) => item.orderType === "Hoje").reduce((sum, item) => sum + item.quantity, 0);
   const preorder = state.cart.filter((item) => item.orderType === "Encomenda").reduce((sum, item) => sum + item.quantity, 0);
   const parts = [];
-  if (today) parts.push(`<span>${today} item${today > 1 ? "s" : ""} de hoje</span>`);
+  if (today) parts.push(`<span>${today} item${today > 1 ? "s" : ""} do cardápio</span>`);
   if (preorder) parts.push(`<span class="is-preorder">${preorder} encomenda${preorder > 1 ? "s" : ""}</span>`);
   elements.cartKinds.innerHTML = parts.join("");
 }
@@ -196,37 +199,79 @@ function renderCart() {
   state.cart.forEach((item) => {
     const row = document.createElement("div");
     row.className = "cart-item";
-    row.innerHTML = `<div><span class="cart-item__kind">${escapeHtml(item.orderType === "Encomenda" ? "Encomenda" : "Hoje")}</span><h4>${escapeHtml(item.label || item.name)}</h4><small>${escapeHtml(item.optionLabel || "")}${item.serves ? ` · ${escapeHtml(item.serves)}` : ""}</small><div class="quantity-control"><button type="button" data-qty="-1" data-key="${encodeURIComponent(item.key)}">−</button><strong>${item.quantity}</strong><button type="button" data-qty="1" data-key="${encodeURIComponent(item.key)}">+</button></div></div><div class="cart-item__price">${money.format(item.price * item.quantity)}</div>`;
+    row.innerHTML = `<div><span class="cart-item__kind">${escapeHtml(item.orderType === "Encomenda" ? "Encomenda" : "Cardápio")}</span><h4>${escapeHtml(item.label || item.name)}</h4><small>${escapeHtml(item.optionLabel || "")}${item.serves ? ` · ${escapeHtml(item.serves)}` : ""}</small><div class="quantity-control"><button type="button" data-qty="-1" data-key="${encodeURIComponent(item.key)}">−</button><strong>${item.quantity}</strong><button type="button" data-qty="1" data-key="${encodeURIComponent(item.key)}">+</button></div></div><div class="cart-item__price">${money.format(item.price * item.quantity)}</div>`;
     elements.cartItems.appendChild(row);
   });
 }
 
 function openCart() { elements.cartDrawer.classList.add("is-open"); elements.cartDrawer.setAttribute("aria-hidden", "false"); elements.overlay.hidden = false; document.body.classList.add("no-scroll"); }
 function closeCart() { elements.cartDrawer.classList.remove("is-open"); elements.cartDrawer.setAttribute("aria-hidden", "true"); elements.overlay.hidden = true; if (!elements.productDialog.open && !elements.checkoutDialog.open) document.body.classList.remove("no-scroll"); }
-function renderCheckoutKinds() { const parts = []; if (state.cart.some((item) => item.orderType === "Hoje")) parts.push("<span>✓ Itens disponíveis hoje</span>"); if (cartHasPreorder()) parts.push('<span class="is-preorder">✦ Encomenda programada</span>'); elements.checkoutOrderKinds.innerHTML = parts.join(""); }
+function renderCheckoutKinds() { const parts = []; parts.push("<span>✓ Retirada no local</span>"); if (cartHasPreorder()) parts.push('<span class="is-preorder">✦ Possui encomenda</span>'); parts.push("<span>⌛ Aguarda aprovação da Vanuza</span>"); elements.checkoutOrderKinds.innerHTML = parts.join(""); }
+
+function setupApprovalFlow() {
+  const deliveryField = elements.deliveryMethod?.closest(".form-field");
+  if (elements.deliveryMethod) {
+    elements.deliveryMethod.innerHTML = '<option value="Retirada">Retirada no local</option>';
+    elements.deliveryMethod.value = "Retirada";
+    elements.deliveryMethod.disabled = true;
+  }
+  if (elements.addressField) {
+    elements.addressField.hidden = true;
+    const addressInput = elements.addressField.querySelector("input");
+    if (addressInput) { addressInput.required = false; addressInput.value = ""; }
+  }
+  if (deliveryField && !document.querySelector(".pickup-only-card")) {
+    const pickup = document.createElement("div");
+    pickup.className = "pickup-only-card form-field--full";
+    pickup.innerHTML = `<span>📍 Retirada no local</span><strong>${PICKUP_ADDRESS}</strong><small>${PICKUP_REFERENCE}</small>`;
+    deliveryField.after(pickup);
+  }
+  const requestedHeading = elements.requestedFields?.querySelector(".requested-fields__heading span");
+  const requestedHint = elements.requestedFields?.querySelector(".requested-fields__heading small");
+  if (requestedHeading) requestedHeading.textContent = "Quando você deseja retirar?";
+  if (requestedHint) requestedHint.textContent = "A data e o horário só ficam confirmados depois da aprovação da Vanuza.";
+  const intro = document.querySelector(".checkout-intro");
+  if (intro) intro.textContent = "Envie sua solicitação. A Vanuza vai verificar se consegue preparar para a data e o horário escolhidos e responderá pelo WhatsApp.";
+  const deliveryStripTitle = document.querySelector(".delivery-strip strong");
+  const deliveryStripText = document.querySelector(".delivery-strip small");
+  if (deliveryStripTitle) deliveryStripTitle.textContent = "Somente retirada";
+  if (deliveryStripText) deliveryStripText.textContent = `${PICKUP_ADDRESS} · ${PICKUP_REFERENCE}`;
+  if (elements.submitOrder) elements.submitOrder.textContent = "Enviar solicitação →";
+  const successText = document.querySelector(".success-card p");
+  if (successText) successText.textContent = "A Vanuza vai analisar a data e o horário e responder pelo WhatsApp aceitando ou recusando a solicitação.";
+}
 
 function openCheckout() {
   if (!state.cart.length) return;
   closeCart(); elements.checkoutError.hidden = true; renderCheckoutKinds();
-  const hasPreorder = cartHasPreorder(); elements.requestedFields.hidden = !hasPreorder; elements.requestedDate.required = hasPreorder;
+  elements.requestedFields.hidden = false;
+  elements.requestedDate.required = true;
+  elements.requestedTime.required = true;
   const today = new Date(); elements.requestedDate.min = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   elements.checkoutDialog.showModal(); document.body.classList.add("no-scroll");
 }
 function closeCheckout() { if (elements.checkoutDialog.open) elements.checkoutDialog.close(); document.body.classList.remove("no-scroll"); }
-function updateDeliveryFields() { const isDelivery = elements.deliveryMethod.value === "Entrega"; elements.addressField.hidden = !isDelivery; const input = elements.addressField.querySelector("input"); input.required = isDelivery; if (!isDelivery) input.value = ""; }
+function updateDeliveryFields() {
+  if (elements.deliveryMethod) elements.deliveryMethod.value = "Retirada";
+  if (elements.addressField) {
+    elements.addressField.hidden = true;
+    const input = elements.addressField.querySelector("input");
+    if (input) { input.required = false; input.value = ""; }
+  }
+}
 
 async function submitOrder(event) {
   event.preventDefault(); if (!state.cart.length) return;
-  elements.checkoutError.hidden = true; elements.submitOrder.disabled = true; elements.submitOrder.textContent = "Registrando pedido...";
+  elements.checkoutError.hidden = true; elements.submitOrder.disabled = true; elements.submitOrder.textContent = "Enviando solicitação...";
   const formData = new FormData(elements.checkoutForm);
-  const payload = { customer_name: String(formData.get("customer_name") || "").trim(), phone: String(formData.get("phone") || "").trim(), delivery_method: String(formData.get("delivery_method") || "Entrega"), address: String(formData.get("address") || "").trim(), requested_date: String(formData.get("requested_date") || "").trim(), requested_time: String(formData.get("requested_time") || "").trim(), payment_method: String(formData.get("payment_method") || "Pix"), notes: String(formData.get("notes") || "").trim(), items: state.cart.map((item) => ({ dish_name: item.name, option: item.optionId, quantity: item.quantity })) };
+  const payload = { customer_name: String(formData.get("customer_name") || "").trim(), phone: String(formData.get("phone") || "").trim(), delivery_method: "Retirada", address: "", requested_date: String(formData.get("requested_date") || "").trim(), requested_time: String(formData.get("requested_time") || "").trim(), payment_method: String(formData.get("payment_method") || "Pix"), notes: String(formData.get("notes") || "").trim(), items: state.cart.map((item) => ({ dish_name: item.name, option: item.optionId, quantity: item.quantity })) };
   try {
     const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.detail || "Não foi possível registrar o pedido.");
-    state.cart = []; saveCart(); renderCart(); elements.checkoutDialog.close(); elements.checkoutForm.reset(); updateDeliveryFields(); elements.requestedFields.hidden = true; elements.successTitle.textContent = `Pedido #${result.order.id} recebido`; elements.successOverlay.hidden = false; setTimeout(() => { window.location.href = result.whatsapp_url; }, 1200);
+    if (!response.ok) throw new Error(result.detail || "Não foi possível enviar a solicitação.");
+    state.cart = []; saveCart(); renderCart(); elements.checkoutDialog.close(); elements.checkoutForm.reset(); setupApprovalFlow(); elements.requestedFields.hidden = false; elements.successTitle.textContent = `Solicitação #${result.order.id} enviada`; elements.successOverlay.hidden = false; setTimeout(() => { elements.successOverlay.hidden = true; document.body.classList.remove("no-scroll"); }, 4200);
   } catch (error) { elements.checkoutError.textContent = error.message; elements.checkoutError.hidden = false; }
-  finally { elements.submitOrder.disabled = false; elements.submitOrder.textContent = "Confirmar no WhatsApp ↗"; }
+  finally { elements.submitOrder.disabled = false; elements.submitOrder.textContent = "Enviar solicitação →"; }
 }
 
 function reconcileCart() {
@@ -258,8 +303,8 @@ elements.menuGrid.addEventListener("click", handleProductTrigger);
 elements.productOptions.addEventListener("click", (event) => { const button = event.target.closest("[data-option]"); if (button) updateProductOption(button.dataset.option); });
 elements.productQtyMinus.addEventListener("click", () => updateProductQuantity(-1)); elements.productQtyPlus.addEventListener("click", () => updateProductQuantity(1)); elements.productAdd.addEventListener("click", addSelectedProduct); elements.closeProduct.addEventListener("click", closeProduct);
 elements.cartItems.addEventListener("click", (event) => { const button = event.target.closest("[data-qty]"); if (button) changeQuantity(decodeURIComponent(button.dataset.key), Number(button.dataset.qty)); });
-elements.cartButton.addEventListener("click", openCart); elements.mobileCartNav.addEventListener("click", openCart); elements.mobileCartBar.addEventListener("click", openCart); elements.closeCart.addEventListener("click", closeCart); elements.overlay.addEventListener("click", closeCart); elements.checkoutButton.addEventListener("click", openCheckout); elements.closeCheckout.addEventListener("click", closeCheckout); elements.deliveryMethod.addEventListener("change", updateDeliveryFields); elements.checkoutForm.addEventListener("submit", submitOrder);
+elements.cartButton.addEventListener("click", openCart); elements.mobileCartNav.addEventListener("click", openCart); elements.mobileCartBar.addEventListener("click", openCart); elements.closeCart.addEventListener("click", closeCart); elements.overlay.addEventListener("click", closeCart); elements.checkoutButton.addEventListener("click", openCheckout); elements.closeCheckout.addEventListener("click", closeCheckout); elements.checkoutForm.addEventListener("submit", submitOrder);
 document.addEventListener("click", (event) => { if (event.target.closest("[data-close-and-menu]")) { closeCart(); scrollToMenu(); } });
 document.addEventListener("keydown", (event) => { if (event.key !== "Escape") return; if (elements.productDialog.open) closeProduct(); else if (elements.checkoutDialog.open) closeCheckout(); else if (elements.cartDrawer.classList.contains("is-open")) closeCart(); });
 
-$("#year").textContent = new Date().getFullYear(); updateDeliveryFields(); renderCart(); loadMenu();
+$("#year").textContent = new Date().getFullYear(); setupApprovalFlow(); updateDeliveryFields(); renderCart(); loadMenu();
