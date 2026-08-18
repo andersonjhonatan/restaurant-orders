@@ -1,0 +1,26 @@
+name: Purge frontend CDN cache
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge jsDelivr branch cache
+        run: |
+          urls=(
+            "https://purge.jsdelivr.net/gh/andersonjhonatan/restaurant-orders@main/frontend/brand-refine.css"
+            "https://purge.jsdelivr.net/gh/andersonjhonatan/restaurant-orders@main/frontend/styles.css"
+            "https://purge.jsdelivr.net/gh/andersonjhonatan/restaurant-orders@main/frontend/app.js"
+            "https://purge.jsdelivr.net/gh/andersonjhonatan/restaurant-orders@main/frontend/admin.css"
+            "https://purge.jsdelivr.net/gh/andersonjhonatan/restaurant-orders@main/frontend/admin.js"
+          )
+          for url in "${urls[@]}"; do
+            echo "Purging $url"
+            curl --fail --silent --show-error --location "$url" >/dev/null
+          done
