@@ -1,11 +1,11 @@
-@import url("/static/brand-refine-base.css?v=logo-vanuza-22");
+@import url("/static/brand-refine-base.css?v=logo-vanuza-23");
 
 /* Usa exatamente a logo transparente enviada pelo cliente. */
 html body .header-brand-placeholder,
 html body .footer-brand::before,
 html body .admin-header .brand::before,
 html body .admin-login::before {
-  background-image: url("/brand/logo?v=logo-vanuza-22") !important;
+  background-image: url("/brand/logo?v=logo-vanuza-23") !important;
   background-color: transparent !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
