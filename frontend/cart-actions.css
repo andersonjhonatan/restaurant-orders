@@ -1,0 +1,112 @@
+/* Ajustes exclusivos da tela Meu carrinho. */
+
+/* Centraliza perfeitamente o ícone do carrinho vazio. */
+.cart-drawer .empty-cart > span {
+  display: grid !important;
+  place-items: center !important;
+  justify-self: center !important;
+  align-self: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.cart-drawer .empty-cart > span::before {
+  margin: auto !important;
+}
+
+/* Área de preço + ação de excluir por produto. */
+.cart-drawer .cart-item__price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cart-drawer .cart-item__remove {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(146, 54, 19, .16);
+  border-radius: 12px;
+  background: rgba(185, 74, 28, .07);
+  color: var(--rust2);
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+
+.cart-drawer .cart-item__remove::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  display: block;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.cart-drawer .cart-item__remove:active {
+  transform: scale(.94);
+}
+
+/* Botão para remover tudo de uma vez. */
+.cart-drawer .cart-clear-button {
+  width: 100%;
+  min-height: 46px;
+  margin: 10px 0 12px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid rgba(146, 54, 19, .16);
+  border-radius: 14px;
+  background: rgba(185, 74, 28, .06);
+  color: var(--rust2);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+
+.cart-drawer .cart-clear-button > span {
+  width: 18px;
+  height: 18px;
+  display: block;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+@media (hover: hover) {
+  .cart-drawer .cart-item__remove:hover,
+  .cart-drawer .cart-clear-button:hover {
+    border-color: rgba(146, 54, 19, .28);
+    background: rgba(185, 74, 28, .11);
+  }
+}
+
+@media (max-width: 420px) {
+  .cart-drawer .cart-item__remove {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .cart-drawer .cart-clear-button {
+    min-height: 44px;
+  }
+}
