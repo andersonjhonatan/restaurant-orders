@@ -170,14 +170,14 @@
       <p class="checkout-intro">Confira os dados para finalizar.</p>
       <div id="checkoutOrderKinds" class="checkout-order-kinds"></div>
       <div class="form-grid">
-        <label class="form-field form-field--full">Nome<input name="customer_name" required minlength="2" placeholder="Seu nome" /></label>
-        <label class="form-field form-field--full">Telefone<input name="phone" required placeholder="(87) 9 9999-9999" /></label>
+        <label class="form-field form-field--full">Nome<input name="customer_name" required minlength="2" maxlength="80" placeholder="Seu nome" /></label>
+        <label class="form-field form-field--full">Telefone<input name="phone" required maxlength="25" inputmode="tel" placeholder="(87) 9 9999-9999" /></label>
         <input type="hidden" name="delivery_method" value="Retirada" />
         <div id="requestedFields" class="requested-fields form-field--full" hidden>
           <div class="requested-fields__heading"><span>Quando você deseja a encomenda?</span><small>A Vanuza ainda precisa confirmar a disponibilidade.</small></div>
           <div class="requested-fields__grid">
             <label class="form-field">Data<input id="requestedDate" name="requested_date" type="date" /></label>
-            <label class="form-field">Horário<input id="requestedTime" name="requested_time" type="time" /></label>
+            <label class="form-field">Horário<input id="requestedTime" name="requested_time" type="time" min="08:00" max="19:59" /></label>
           </div>
         </div>
         <label class="form-field form-field--full">Pagamento<select name="payment_method"><option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option><option value="Cartão">Cartão</option></select></label>
@@ -194,6 +194,7 @@
   </div>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/order-hardening.js?v=p0-hardening-1" defer></script>
   <script src="/static/app.js?v=restore-menu-18" defer></script>
   <script src="/static/cart-actions.js?v=cart-actions-31" defer></script>
 </body>
