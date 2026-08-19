@@ -4,6 +4,8 @@
 
   if (!cartItemsRoot || !clearCartButton) return;
 
+  let lastClearAt = 0;
+
   function removeCartItem(encodedKey) {
     const key = decodeURIComponent(encodedKey);
     const item = state.cart.find((current) => current.key === key);
@@ -22,6 +24,16 @@
     saveCart();
     renderCart();
     showToast("Carrinho limpo");
+  }
+
+  function triggerClearCart(event) {
+    const now = Date.now();
+    if (now - lastClearAt < 350) return;
+    lastClearAt = now;
+
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    clearCart();
   }
 
   function decorateCartItems() {
@@ -51,11 +63,13 @@
     removeCartItem(removeButton.dataset.removeKey);
   });
 
-  clearCartButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    clearCart();
-  });
+  /*
+   * O pointerup resolve navegadores mobile que perdem o click ao tocar
+   * exatamente sobre o conteúdo visual do botão. O click permanece como
+   * fallback para mouse/teclado; o pequeno debounce impede execução dupla.
+   */
+  clearCartButton.addEventListener("pointerup", triggerClearCart);
+  clearCartButton.addEventListener("click", triggerClearCart);
 
   const observer = new MutationObserver(decorateCartItems);
   observer.observe(cartItemsRoot, { childList: true, subtree: true });
