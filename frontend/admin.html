@@ -17,22 +17,25 @@
     <a class="brand" href="/">
       <span class="brand__text"><strong>Sabor da Casa</strong><small>Painel da Vanuza</small></span>
     </a>
-    <a class="button button--ghost" href="/">Ver cardápio <span>↗</span></a>
+    <a class="button button--ghost" href="/">Ver cardápio <span aria-hidden="true">↗</span></a>
   </header>
 
   <main class="admin-shell">
     <section id="loginCard" class="admin-login">
       <span class="eyebrow"><span></span> acesso reservado</span>
       <h1>Gestão simples.<br /><em>Pedidos organizados.</em></h1>
-      <p>Entre com o token administrativo para acompanhar pedidos do dia e encomendas.</p>
-      <form id="tokenForm">
-        <label class="form-field">Token administrativo
-          <input id="adminToken" type="password" autocomplete="current-password" required placeholder="Digite o token" />
+      <p>Entre com seu usuário e senha. A senha não fica armazenada no navegador.</p>
+      <form id="loginForm" autocomplete="on">
+        <label class="form-field">Usuário
+          <input id="adminUsername" name="username" type="text" autocomplete="username" required minlength="2" maxlength="80" placeholder="Seu usuário" />
         </label>
-        <button class="button button--primary button--full" type="submit">Entrar no painel <span>→</span></button>
+        <label class="form-field">Senha
+          <input id="adminPassword" name="password" type="password" autocomplete="current-password" required minlength="4" maxlength="200" placeholder="Sua senha" />
+        </label>
+        <button id="loginButton" class="button button--primary button--full" type="submit">Entrar no painel <span aria-hidden="true">→</span></button>
       </form>
-      <div id="loginError" class="form-error" hidden></div>
-      <small class="admin-login__hint">Área exclusiva para administração dos pedidos.</small>
+      <div id="loginError" class="form-error" role="alert" aria-live="assertive" hidden></div>
+      <small class="admin-login__hint">Sua sessão é protegida e expira automaticamente.</small>
     </section>
 
     <section id="dashboard" class="dashboard" hidden>
@@ -57,16 +60,16 @@
 
       <div class="orders-toolbar">
         <label><span>Filtrar por status</span><select id="statusFilter"><option value="">Todos os pedidos e encomendas</option></select></label>
-        <span id="lastUpdated" class="last-updated"></span>
+        <span id="lastUpdated" class="last-updated" aria-live="polite"></span>
       </div>
 
-      <div id="ordersLoading" class="menu-loading" hidden><span></span> Carregando pedidos...</div>
+      <div id="ordersLoading" class="menu-loading" aria-live="polite" hidden><span></span> Carregando pedidos...</div>
       <div id="ordersList" class="orders-list"></div>
       <div id="ordersEmpty" class="menu-empty" hidden>Nenhum pedido encontrado.</div>
     </section>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/static/admin.js?v=order-flow-14" defer></script>
+  <script src="/static/admin.js?v=p1-security-1" defer></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <img src="assets/logo-sabor-da-casa.svg" alt="Logo Sabor da Casa by Vanuza" width="260" />
 </p>
 
-Sistema web de **cardápio, carrinho e pedidos** do **Sabor da Casa**, administrado por **Vanuza**.
+Sistema web de **cardápio, carrinho, encomendas e gestão de pedidos** do **Sabor da Casa by Vanuza**.
 
 > **Da minha cozinha para sua família.**
 
@@ -12,90 +12,164 @@ Sistema web de **cardápio, carrinho e pedidos** do **Sabor da Casa**, administr
 
 - **Responsável:** Vanuza
 - **WhatsApp:** (87) 98839-5085
-- **Atendimento:** pedidos finalizados diretamente no WhatsApp
+- **Atendimento:** retirada no local
+- **Endereço de retirada:** Rua Joaquim Deodato, 276
 
-## O que já está funcionando
+## O que está funcionando
 
-- site responsivo e mobile-first com a identidade Sabor da Casa;
-- cardápio carregado pela API e condicionado à disponibilidade do estoque;
-- carrinho persistido no navegador;
-- checkout com nome, telefone, entrega/retirada, endereço, pagamento e observação;
-- cálculo do valor no servidor para evitar alteração de preços pelo navegador;
-- registro de pedidos em `data/orders.json`;
-- geração automática da mensagem de confirmação para o WhatsApp da Vanuza;
+- interface responsiva e mobile-first;
+- cardápio do dia e produtos sob encomenda;
+- detalhes de produto, opções de tamanho e carrinho persistente no navegador;
+- exclusão individual de itens e limpeza completa do carrinho com confirmação;
+- checkout com nome, telefone, forma de pagamento, observação e agendamento de encomendas;
+- cálculo de preços exclusivamente no servidor;
+- validação de telefone brasileiro, data, horário, quantidade e forma de pagamento;
+- proteção contra pedidos duplicados com `Idempotency-Key`;
+- rate limit e proteção contra spam no endpoint de pedidos;
+- pedidos persistidos em PostgreSQL quando `DATABASE_URL` está configurada;
+- estoque persistente e movimentado de forma transacional;
+- pedidos do dia entram confirmados; encomendas dependem de aprovação;
 - painel administrativo em `/admin`;
-- atualização do status do pedido: Novo, Confirmado, Em preparo, Saiu para entrega, Concluído ou Cancelado;
-- API FastAPI e documentação Swagger;
-- controle de estoque e montagem de cardápio que estavam incompletos no projeto original;
+- login administrativo com sessão revogável em cookie `HttpOnly`;
+- expiração de sessão, logout no servidor e limite de tentativas de login;
+- cabeçalhos de segurança e CSP;
+- Swagger/OpenAPI ocultos em produção;
+- aviso de privacidade em `/privacidade`;
+- melhorias de acessibilidade, foco e preferência por movimento reduzido;
 - CI no GitHub Actions com compilação e testes automatizados.
 
 ## Tecnologias
 
-- Python
+- Python 3.11+
 - FastAPI
 - Uvicorn
 - Pydantic
+- PostgreSQL / Neon
+- Psycopg
 - HTML5
 - CSS3 responsivo
 - JavaScript sem framework
 - Pytest
 - GitHub Actions
+- Vercel
 
-## Como executar
+## Como executar localmente
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-export ADMIN_TOKEN="crie-uma-senha-forte"
-uvicorn src.app:app --reload
+export ADMIN_USERNAME="vanuza"
+export ADMIN_PASSWORD="crie-uma-senha-forte"
+uvicorn src.p1_security:app --reload
 ```
 
 No Windows PowerShell:
 
 ```powershell
 .venv\Scripts\Activate.ps1
-$env:ADMIN_TOKEN="crie-uma-senha-forte"
-uvicorn src.app:app --reload
+$env:ADMIN_USERNAME="vanuza"
+$env:ADMIN_PASSWORD="crie-uma-senha-forte"
+uvicorn src.p1_security:app --reload
 ```
+
+Por compatibilidade, `ADMIN_TOKEN` ainda pode ser usado no servidor como fallback de `ADMIN_PASSWORD`. O token nunca deve ser enviado pelo frontend.
 
 Depois acesse:
 
 - **Site:** `http://127.0.0.1:8000`
 - **Painel da Vanuza:** `http://127.0.0.1:8000/admin`
-- **Swagger:** `http://127.0.0.1:8000/docs`
+- **Privacidade:** `http://127.0.0.1:8000/privacidade`
+- **Swagger em desenvolvimento:** `http://127.0.0.1:8000/docs`
 - **Health check:** `http://127.0.0.1:8000/health`
+
+## Variáveis de ambiente principais
+
+| Variável | Uso |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL de pedidos, estoque e sessões administrativas |
+| `ADMIN_USERNAME` | usuário do painel; padrão local: `vanuza` |
+| `ADMIN_PASSWORD` | senha administrativa recomendada |
+| `ADMIN_TOKEN` | fallback de compatibilidade no servidor |
+| `ADMIN_SESSION_HOURS` | duração da sessão administrativa |
+| `ADMIN_LOGIN_MAX_ATTEMPTS` | limite de falhas de login por janela |
+| `ADMIN_LOGIN_WINDOW` | janela do rate limit de login em segundos |
+| `ORDER_RATE_LIMIT_MAX` | máximo de tentativas de pedido por janela |
+| `ORDER_RATE_LIMIT_WINDOW` | janela do rate limit dos pedidos em segundos |
+| `MIN_PREORDER_HOURS` | antecedência mínima de encomendas |
+| `RATE_LIMIT_SALT` | salt adicional para hashes de limitação por cliente |
 
 ## Painel administrativo
 
-O painel exige a variável de ambiente `ADMIN_TOKEN`. Não existe senha administrativa padrão gravada no repositório. Isso evita que um projeto público no GitHub exponha o acesso aos pedidos dos clientes.
+O painel não grava a senha no navegador. O login envia as credenciais uma vez ao servidor e recebe uma sessão aleatória em cookie protegido. A sessão é armazenada de forma revogável e expira automaticamente.
 
-Ao abrir `/admin`, informe exatamente o mesmo valor configurado em `ADMIN_TOKEN` no servidor.
+As rotas administrativas de pedidos não aceitam mais a chave administrativa enviada diretamente pelo navegador. O segredo permanece apenas no ambiente do servidor.
+
+## Fluxo dos pedidos
+
+### Cardápio do dia
+
+1. cliente escolhe os pratos disponíveis;
+2. servidor recalcula preços e valida estoque;
+3. estoque é baixado na mesma operação do pedido;
+4. pedido entra como **Confirmado**;
+5. painel permite avançar para **Em preparo**, **Pronto para retirada**, **Concluído** ou **Cancelado**.
+
+### Encomendas
+
+1. cliente escolhe produto, tamanho, data e horário;
+2. servidor valida a antecedência e registra como **Aguardando aprovação**;
+3. Vanuza aceita ou recusa no painel;
+4. o estoque é reservado ao aceitar;
+5. se a encomenda reservada for cancelada ou recusada, o estoque é devolvido.
 
 ## Endpoints principais
 
 | Método | Endpoint | Função |
 | --- | --- | --- |
-| GET | `/api/info` | dados públicos do Sabor da Casa |
-| GET | `/api/menu` | cardápio disponível |
-| POST | `/api/orders` | registra um novo pedido |
-| GET | `/api/orders` | lista pedidos com token de admin |
-| PATCH | `/api/orders/{id}/status` | altera o status de um pedido |
+| GET | `/api/info` | dados públicos do restaurante |
+| GET | `/api/menu` | cardápio disponível conforme estoque |
+| POST | `/api/orders` | cria pedido ou encomenda |
+| POST | `/api/admin/login` | inicia sessão administrativa |
+| GET | `/api/admin/session` | verifica sessão administrativa |
+| POST | `/api/admin/logout` | encerra e revoga a sessão |
+| GET | `/api/orders` | lista pedidos com sessão administrativa |
+| PATCH | `/api/orders/{id}/status` | altera status com sessão administrativa |
 | GET | `/brand/logo` | logo da marca |
+| GET | `/privacidade` | aviso de privacidade |
 | GET | `/health` | status do serviço |
 
-O endpoint legado `POST /order` foi mantido para compatibilidade com a estrutura original do projeto.
+O endpoint legado `POST /order` permanece apenas por compatibilidade com a estrutura original.
 
-## Estrutura
+## Segurança
+
+A camada atual inclui:
+
+- preço recalculado no servidor;
+- estoque transacional;
+- idempotência e deduplicação;
+- rate limit de pedidos;
+- rate limit do login administrativo;
+- sessão administrativa revogável;
+- cookie `HttpOnly`, `SameSite=Strict` e `Secure` em produção;
+- bloqueio do segredo administrativo enviado pelo cliente;
+- CSP, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` e proteção contra framing;
+- documentação de API oculta em produção.
+
+## Privacidade
+
+O checkout coleta somente os dados necessários para receber e acompanhar o pedido. O aviso de privacidade está disponível em `/privacidade` e informa finalidade, categorias de dados, armazenamento, infraestrutura, contato e direitos do titular.
+
+Os registros devem ser mantidos apenas enquanto forem necessários às finalidades do atendimento e às obrigações aplicáveis, observadas as hipóteses legais de conservação.
+
+## Estrutura principal
 
 ```text
-assets/
-  logo-sabor-da-casa.svg
+api/
+  index.py
 
+assets/
 data/
-  inventory_base_data.csv
-  menu_base_data.csv
-  orders.json
 
 frontend/
   index.html
@@ -104,11 +178,19 @@ frontend/
   admin.html
   admin.css
   admin.js
+  privacy.html
+  privacy.css
+  p1-enhancements.css
+  p1-enhancements.js
 
 src/
   app.py
+  p1_security.py
   models/
   services/
+    admin_auth.py
+    order_hardening.py
+    order_store.py
 
 tests/
 .github/workflows/
@@ -116,7 +198,9 @@ tests/
 
 ## Produção
 
-O armazenamento JSON funciona para demonstração, desenvolvimento local e operação de volume muito baixo em um único processo. Para disponibilizar o Sabor da Casa publicamente com segurança e múltiplos acessos, o próximo passo é usar um banco persistente como PostgreSQL, autenticação de painel e backup. Em plataformas serverless, não use `data/orders.json` como banco definitivo.
+Em produção, configure `DATABASE_URL` e uma senha administrativa forte no ambiente da Vercel. O armazenamento JSON existe somente como fallback de desenvolvimento; PostgreSQL é o armazenamento esperado para operação real.
+
+O projeto utiliza `api/index.py` para preservar o caminho original das requisições após o rewrite da Vercel.
 
 ---
 
