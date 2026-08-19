@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 from fastapi import HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 import src.app as legacy_app
@@ -25,6 +25,7 @@ ADMIN_LOGIN_WINDOW = int(os.getenv("ADMIN_LOGIN_WINDOW", "900"))
 VERCEL_ENV = os.getenv("VERCEL_ENV", "")
 APP_ENV = os.getenv("APP_ENV", "")
 IS_PRODUCTION = VERCEL_ENV == "production" or APP_ENV == "production"
+STATIC_LOGO_PATH = legacy_app.FRONTEND_DIR / "assets" / "logo-sabor-da-casa.webp"
 
 # O endpoint legado continua esperando um segredo interno. Ele nunca é aceito
 # diretamente do navegador: o middleware abaixo remove o header recebido e só
@@ -97,9 +98,28 @@ def _security_headers(response):
     return response
 
 
+def _static_logo_response():
+    return _security_headers(
+        FileResponse(
+            STATIC_LOGO_PATH,
+            media_type="image/webp",
+            headers={
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "X-Sabor-Logo": "static-approved",
+            },
+        )
+    )
+
+
 @app.middleware("http")
 async def p1_security_middleware(request: Request, call_next):
     path = request.url.path
+
+    # A marca aprovada é servida diretamente do arquivo que foi validado
+    # byte a byte contra a versão anterior. Evita reprocessamento com Pillow
+    # em cada nova instância serverless e mantém a URL pública compatível.
+    if path in {"/brand/logo", "/favicon.ico", "/favicon.svg", "/favicon.png"}:
+        return _static_logo_response()
 
     if IS_PRODUCTION and path in {"/docs", "/redoc", "/openapi.json"}:
         return _security_headers(
