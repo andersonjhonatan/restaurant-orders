@@ -14,12 +14,7 @@ class StockUnavailable(Exception):
 
 
 class OrderHardening:
-    """Proteções de produção para pedidos armazenados em PostgreSQL.
-
-    Mantém o fluxo local/JSON compatível: quando DATABASE_URL não existe,
-    estas proteções de banco ficam desabilitadas e o OrderStore continua sendo
-    usado normalmente pelo aplicativo.
-    """
+    """Proteções de produção para pedidos armazenados em PostgreSQL."""
 
     def __init__(self, database_url: Optional[str]) -> None:
         self.database_url = database_url
@@ -44,14 +39,48 @@ class OrderHardening:
             data["total"] = float(data["total"])
         return data
 
+    @staticmethod
+    def _lock_and_validate_inventory(cursor, requirements: Dict[str, int]) -> None:
+        ingredients = sorted(requirements)
+        if not ingredients:
+            return
+        cursor.execute(
+            """
+            SELECT ingredient, available_amount
+            FROM inventory
+            WHERE ingredient = ANY(%s)
+            ORDER BY ingredient
+            FOR UPDATE
+            """,
+            (ingredients,),
+        )
+        available = {
+            row["ingredient"]: int(row["available_amount"])
+            for row in cursor.fetchall()
+        }
+        for ingredient, required in requirements.items():
+            if available.get(ingredient, 0) < required:
+                raise StockUnavailable(ingredient)
+
+    @staticmethod
+    def _consume_inventory(cursor, requirements: Dict[str, int]) -> None:
+        for ingredient, required in requirements.items():
+            cursor.execute(
+                """
+                UPDATE inventory
+                SET available_amount = available_amount - %s,
+                    updated_at = NOW()
+                WHERE ingredient = %s
+                """,
+                (required, ingredient),
+            )
+
     def get_inventory(self) -> Dict[str, int]:
         if not self.enabled:
             return {}
         with self._connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(
-                    "SELECT ingredient, available_amount FROM inventory"
-                )
+                cursor.execute("SELECT ingredient, available_amount FROM inventory")
                 return {
                     row["ingredient"]: int(row["available_amount"])
                     for row in cursor.fetchall()
@@ -101,7 +130,6 @@ class OrderHardening:
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
         with self._connect() as conn:
             with conn.cursor() as cursor:
-                # Serializa as tentativas do mesmo cliente para evitar corrida.
                 cursor.execute(
                     "SELECT pg_advisory_xact_lock(hashtext(%s))",
                     (client_hash,),
@@ -129,11 +157,12 @@ class OrderHardening:
                 )
             conn.commit()
 
-    def create_order_with_stock(
+    def create_order(
         self,
         payload: Dict,
         stock_requirements: Dict[str, int],
         *,
+        reserve_stock: bool,
         idempotency_key: str,
         request_fingerprint: str,
         client_hash: str,
@@ -143,7 +172,6 @@ class OrderHardening:
 
         with self._connect() as conn:
             with conn.cursor() as cursor:
-                # Idempotência é verificada novamente dentro da transação.
                 if idempotency_key:
                     cursor.execute(
                         "SELECT * FROM orders WHERE idempotency_key = %s LIMIT 1",
@@ -153,58 +181,19 @@ class OrderHardening:
                     if existing:
                         return self._serialize(existing)
 
-                ingredients = sorted(stock_requirements)
-                locked_inventory: Dict[str, int] = {}
-                if ingredients:
-                    cursor.execute(
-                        """
-                        SELECT ingredient, available_amount
-                        FROM inventory
-                        WHERE ingredient = ANY(%s)
-                        ORDER BY ingredient
-                        FOR UPDATE
-                        """,
-                        (ingredients,),
-                    )
-                    locked_inventory = {
-                        row["ingredient"]: int(row["available_amount"])
-                        for row in cursor.fetchall()
-                    }
-
-                for ingredient, required in stock_requirements.items():
-                    if locked_inventory.get(ingredient, 0) < required:
-                        raise StockUnavailable(ingredient)
-
-                for ingredient, required in stock_requirements.items():
-                    cursor.execute(
-                        """
-                        UPDATE inventory
-                        SET available_amount = available_amount - %s,
-                            updated_at = NOW()
-                        WHERE ingredient = %s
-                        """,
-                        (required, ingredient),
-                    )
+                if reserve_stock:
+                    self._lock_and_validate_inventory(cursor, stock_requirements)
+                    self._consume_inventory(cursor, stock_requirements)
 
                 cursor.execute(
                     """
                     INSERT INTO orders (
-                        status,
-                        customer_name,
-                        phone,
-                        delivery_method,
-                        address,
-                        payment_method,
-                        notes,
-                        items,
-                        total,
-                        idempotency_key,
-                        request_fingerprint,
-                        client_hash,
-                        stock_reserved
+                        status, customer_name, phone, delivery_method, address,
+                        payment_method, notes, items, total, idempotency_key,
+                        request_fingerprint, client_hash, stock_reserved
                     ) VALUES (
                         %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s,
-                        %s, %s, %s, TRUE
+                        %s, %s, %s, %s
                     )
                     RETURNING *
                     """,
@@ -221,9 +210,61 @@ class OrderHardening:
                         idempotency_key or None,
                         request_fingerprint,
                         client_hash,
+                        reserve_stock,
                     ),
                 )
                 order = cursor.fetchone()
             conn.commit()
-
         return self._serialize(order)
+
+    def reserve_existing_order(
+        self, order_id: int, requirements: Dict[str, int]
+    ) -> None:
+        if not self.enabled:
+            return
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT stock_reserved FROM orders WHERE id = %s FOR UPDATE",
+                    (order_id,),
+                )
+                order = cursor.fetchone()
+                if not order or order["stock_reserved"]:
+                    return
+                self._lock_and_validate_inventory(cursor, requirements)
+                self._consume_inventory(cursor, requirements)
+                cursor.execute(
+                    "UPDATE orders SET stock_reserved = TRUE WHERE id = %s",
+                    (order_id,),
+                )
+            conn.commit()
+
+    def release_existing_order(
+        self, order_id: int, requirements: Dict[str, int]
+    ) -> None:
+        if not self.enabled:
+            return
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT stock_reserved FROM orders WHERE id = %s FOR UPDATE",
+                    (order_id,),
+                )
+                order = cursor.fetchone()
+                if not order or not order["stock_reserved"]:
+                    return
+                for ingredient, amount in requirements.items():
+                    cursor.execute(
+                        """
+                        UPDATE inventory
+                        SET available_amount = LEAST(initial_amount, available_amount + %s),
+                            updated_at = NOW()
+                        WHERE ingredient = %s
+                        """,
+                        (amount, ingredient),
+                    )
+                cursor.execute(
+                    "UPDATE orders SET stock_reserved = FALSE WHERE id = %s",
+                    (order_id,),
+                )
+            conn.commit()
