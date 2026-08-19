@@ -1,7 +1,7 @@
 const state = {
-  token: sessionStorage.getItem("sabor-da-casa-admin-token") || "",
   orders: [],
   filter: "",
+  authenticated: false,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -11,8 +11,10 @@ const dateTime = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyl
 const els = {
   loginCard: $("#loginCard"),
   dashboard: $("#dashboard"),
-  tokenForm: $("#tokenForm"),
-  adminToken: $("#adminToken"),
+  loginForm: $("#loginForm"),
+  adminUsername: $("#adminUsername"),
+  adminPassword: $("#adminPassword"),
+  loginButton: $("#loginButton"),
   loginError: $("#loginError"),
   refreshOrders: $("#refreshOrders"),
   logoutButton: $("#logoutButton"),
@@ -56,13 +58,16 @@ function showToast(message) {
 }
 
 function showLogin(message = "") {
+  state.authenticated = false;
   els.dashboard.hidden = true;
   els.loginCard.hidden = false;
   els.loginError.hidden = !message;
   els.loginError.textContent = message;
+  requestAnimationFrame(() => els.adminUsername?.focus());
 }
 
 function showDashboard() {
+  state.authenticated = true;
   els.loginCard.hidden = true;
   els.dashboard.hidden = false;
 }
@@ -94,36 +99,101 @@ function setupDashboard() {
   }
 }
 
-async function api(path, options = {}) {
+async function requestJson(path, options = {}, { handleUnauthorized = true } = {}) {
   const response = await fetch(path, {
+    credentials: "same-origin",
+    cache: "no-store",
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "X-Admin-Token": state.token,
+      "X-Admin-Request": "1",
       ...(options.headers || {}),
     },
   });
 
-  if (response.status === 401) {
-    sessionStorage.removeItem("sabor-da-casa-admin-token");
-    state.token = "";
-    showLogin("Token administrativo inválido.");
+  const payload = await response.json().catch(() => ({}));
+
+  if (response.status === 401 && handleUnauthorized) {
+    state.authenticated = false;
+    showLogin("Sua sessão expirou. Entre novamente.");
     throw new Error("unauthorized");
   }
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.detail || "Não foi possível concluir a operação.");
+    const error = new Error(payload.detail || "Não foi possível concluir a operação.");
+    error.status = response.status;
+    error.retryAfter = response.headers.get("Retry-After");
+    throw error;
   }
 
-  return response.json();
+  return payload;
+}
+
+async function checkSession() {
+  try {
+    await requestJson("/api/admin/session", { method: "GET" }, { handleUnauthorized: false });
+    state.authenticated = true;
+    await loadOrders();
+  } catch (_error) {
+    showLogin();
+  }
+}
+
+async function login(event) {
+  event.preventDefault();
+  els.loginError.hidden = true;
+  els.loginButton.disabled = true;
+  const originalText = els.loginButton.innerHTML;
+  els.loginButton.textContent = "Entrando...";
+
+  try {
+    await requestJson(
+      "/api/admin/login",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          username: els.adminUsername.value.trim(),
+          password: els.adminPassword.value,
+        }),
+      },
+      { handleUnauthorized: false },
+    );
+    els.adminPassword.value = "";
+    state.authenticated = true;
+    await loadOrders();
+  } catch (error) {
+    let message = error.message;
+    if (error.status === 429) {
+      message = "Muitas tentativas de acesso. Aguarde alguns minutos e tente novamente.";
+    }
+    showLogin(message);
+    els.adminPassword.select();
+  } finally {
+    els.loginButton.disabled = false;
+    els.loginButton.innerHTML = originalText;
+  }
+}
+
+async function logout() {
+  els.logoutButton.disabled = true;
+  try {
+    await requestJson("/api/admin/logout", { method: "POST", body: "{}" }, { handleUnauthorized: false });
+  } catch (_error) {
+    // O cookie local é expirado pelo servidor quando possível; mesmo em falha,
+    // voltamos à tela de login e uma sessão inválida não passa no backend.
+  } finally {
+    state.orders = [];
+    els.adminPassword.value = "";
+    els.logoutButton.disabled = false;
+    showLogin();
+  }
 }
 
 async function loadOrders() {
   els.ordersLoading.hidden = false;
   els.ordersEmpty.hidden = true;
   try {
-    state.orders = await api("/api/orders");
+    state.orders = await requestJson("/api/orders", { method: "GET" });
     showDashboard();
     renderStats();
     renderOrders();
@@ -178,8 +248,8 @@ function renderOrders() {
         </div>`;
     }).join("");
 
-    const options = statusesFor(order).map((status) =>
-      `<option value="${escapeHtml(status)}" ${status === order.status ? "selected" : ""}>${escapeHtml(status)}</option>`
+    const options = statusesFor(order).map((orderStatus) =>
+      `<option value="${escapeHtml(orderStatus)}" ${orderStatus === order.status ? "selected" : ""}>${escapeHtml(orderStatus)}</option>`
     ).join("");
 
     const title = preorder ? `Encomenda #${order.id}` : `Pedido #${order.id}`;
@@ -218,16 +288,16 @@ function replaceOrder(updated) {
   renderOrders();
 }
 
-async function changeStatus(orderId, status, { notify = false } = {}) {
+async function changeStatus(orderId, newStatus, { notify = false } = {}) {
   const popup = notify ? window.open("about:blank", "_blank") : null;
   try {
-    const result = await api(`/api/orders/${orderId}/status`, {
+    const result = await requestJson(`/api/orders/${orderId}/status`, {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status: newStatus }),
     });
     const updated = result.order || result;
     replaceOrder(updated);
-    showToast(`${isPreorder(updated) ? "Encomenda" : "Pedido"} #${orderId}: ${status}`);
+    showToast(`${isPreorder(updated) ? "Encomenda" : "Pedido"} #${orderId}: ${newStatus}`);
 
     if (notify && result.customer_whatsapp_url) {
       if (popup) popup.location.href = result.customer_whatsapp_url;
@@ -246,26 +316,17 @@ async function updateStatus(orderId) {
   if (!select) return;
   const button = document.querySelector(`[data-save-status="${orderId}"]`);
   button.disabled = true;
-  button.textContent = "...";
+  const previous = button.textContent;
+  button.textContent = "Atualizando...";
   const shouldNotify = ["Aceito", "Recusado", "Pronto para retirada"].includes(select.value);
   await changeStatus(orderId, select.value, { notify: shouldNotify });
+  button.disabled = false;
+  button.textContent = previous;
 }
 
-els.tokenForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  state.token = els.adminToken.value.trim();
-  sessionStorage.setItem("sabor-da-casa-admin-token", state.token);
-  els.loginError.hidden = true;
-  await loadOrders();
-});
-
+els.loginForm.addEventListener("submit", login);
 els.refreshOrders.addEventListener("click", loadOrders);
-els.logoutButton.addEventListener("click", () => {
-  state.token = "";
-  sessionStorage.removeItem("sabor-da-casa-admin-token");
-  els.adminToken.value = "";
-  showLogin();
-});
+els.logoutButton.addEventListener("click", logout);
 els.statusFilter.addEventListener("change", () => {
   state.filter = els.statusFilter.value;
   renderOrders();
@@ -289,5 +350,4 @@ els.ordersList.addEventListener("click", (event) => {
 });
 
 setupDashboard();
-if (state.token) loadOrders();
-else showLogin();
+checkSession();
