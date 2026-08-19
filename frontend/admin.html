@@ -12,12 +12,11 @@
   <link rel="stylesheet" href="/static/styles.css?v=order-flow-14" />
   <link rel="stylesheet" href="/static/admin.css?v=p2-catalog-1" />
   <link rel="stylesheet" href="/static/p2-admin.css?v=p2-catalog-1" />
+  <link rel="stylesheet" href="/static/p2-inventory-admin.css?v=p2-inventory-1" />
 </head>
 <body class="admin-body">
   <header class="admin-header">
-    <a class="brand" href="/">
-      <span class="brand__text"><strong>Sabor da Casa</strong><small>Painel da Vanuza</small></span>
-    </a>
+    <a class="brand" href="/"><span class="brand__text"><strong>Sabor da Casa</strong><small>Painel da Vanuza</small></span></a>
     <a class="button button--ghost" href="/">Ver cardápio <span aria-hidden="true">↗</span></a>
   </header>
 
@@ -27,12 +26,8 @@
       <h1>Gestão simples.<br /><em>Pedidos organizados.</em></h1>
       <p>Entre com seu usuário e senha. A senha não fica armazenada no navegador.</p>
       <form id="loginForm" autocomplete="on">
-        <label class="form-field">Usuário
-          <input id="adminUsername" name="username" type="text" autocomplete="username" required minlength="2" maxlength="80" placeholder="Seu usuário" />
-        </label>
-        <label class="form-field">Senha
-          <input id="adminPassword" name="password" type="password" autocomplete="current-password" required minlength="4" maxlength="200" placeholder="Sua senha" />
-        </label>
+        <label class="form-field">Usuário<input id="adminUsername" name="username" type="text" autocomplete="username" required minlength="2" maxlength="80" placeholder="Seu usuário" /></label>
+        <label class="form-field">Senha<input id="adminPassword" name="password" type="password" autocomplete="current-password" required minlength="4" maxlength="200" placeholder="Sua senha" /></label>
         <button id="loginButton" class="button button--primary button--full" type="submit">Entrar no painel <span aria-hidden="true">→</span></button>
       </form>
       <div id="loginError" class="form-error" role="alert" aria-live="assertive" hidden></div>
@@ -55,6 +50,7 @@
       <nav class="admin-tabs" aria-label="Áreas do painel">
         <button class="is-active" type="button" data-admin-tab="orders">Pedidos</button>
         <button type="button" data-admin-tab="products">Cardápio</button>
+        <button type="button" data-admin-tab="inventory">Estoque</button>
       </nav>
 
       <section id="ordersPanel" class="admin-panel">
@@ -64,12 +60,10 @@
           <article><small>Em preparo</small><strong id="statPreparing">0</strong><span>na cozinha</span></article>
           <article><small>Concluídos</small><strong id="statDone">0</strong><span>finalizados</span></article>
         </div>
-
         <div class="orders-toolbar">
           <label><span>Filtrar por status</span><select id="statusFilter"><option value="">Todos os pedidos e encomendas</option></select></label>
           <span id="lastUpdated" class="last-updated" aria-live="polite"></span>
         </div>
-
         <div id="ordersLoading" class="menu-loading" aria-live="polite" hidden><span></span> Carregando pedidos...</div>
         <div id="ordersList" class="orders-list"></div>
         <div id="ordersEmpty" class="menu-empty" hidden>Nenhum pedido encontrado.</div>
@@ -77,118 +71,89 @@
 
       <section id="productsPanel" class="admin-panel catalog-panel" hidden>
         <div class="catalog-heading">
-          <div>
-            <span class="eyebrow"><span></span> catálogo</span>
-            <h2>Cardápio</h2>
-            <p>Altere pratos, preços, categorias e disponibilidade sem precisar modificar o site.</p>
-          </div>
+          <div><span class="eyebrow"><span></span> catálogo</span><h2>Cardápio</h2><p>Altere pratos, preços, categorias e disponibilidade sem precisar modificar o site.</p></div>
           <button id="newProductButton" class="button button--primary" type="button">+ Novo prato</button>
         </div>
-
-        <div class="catalog-summary" aria-live="polite">
-          <span><strong id="productsTotal">0</strong> pratos</span>
-          <span><strong id="productsActive">0</strong> ativos</span>
-          <span><strong id="productsPreorder">0</strong> encomendas</span>
-        </div>
-
+        <div class="catalog-summary" aria-live="polite"><span><strong id="productsTotal">0</strong> pratos</span><span><strong id="productsActive">0</strong> ativos</span><span><strong id="productsPreorder">0</strong> encomendas</span></div>
         <div id="productsLoading" class="menu-loading" aria-live="polite" hidden><span></span> Carregando cardápio...</div>
         <div id="productsList" class="products-list"></div>
         <div id="productsEmpty" class="menu-empty" hidden>Nenhum prato cadastrado.</div>
+      </section>
+
+      <section id="inventoryPanel" class="admin-panel" hidden>
+        <div class="inventory-heading">
+          <div><span class="eyebrow"><span></span> operação da cozinha</span><h2>Estoque</h2><p>Controle quantidades, alertas de reposição e a receita de estoque usada por cada prato.</p></div>
+        </div>
+        <div class="inventory-summary" aria-live="polite">
+          <article><small>Ingredientes controlados</small><strong id="inventoryTotal">0</strong></article>
+          <article><small>Estoque baixo</small><strong id="inventoryLow">0</strong></article>
+          <article><small>Sem estoque</small><strong id="inventoryUnavailable">0</strong></article>
+        </div>
+        <div class="inventory-toolbar"><input id="inventorySearch" type="search" placeholder="Buscar ingrediente..." aria-label="Buscar ingrediente no estoque" /></div>
+        <div id="inventoryLoading" class="menu-loading" aria-live="polite" hidden><span></span> Carregando estoque...</div>
+        <div id="inventoryList" class="inventory-list"></div>
+        <div id="inventoryEmpty" class="menu-empty" hidden>Nenhum ingrediente encontrado.</div>
+        <section class="inventory-history"><h3>Movimentações recentes</h3><div id="inventoryMovements" class="movement-list"></div></section>
+        <section class="recipe-section"><h3>Receitas de estoque dos pratos</h3><p class="inventory-note">A receita determina o que será baixado quando um pedido for confirmado. Pratos novos só podem ser ativados depois que essa configuração existir.</p><div id="inventoryRecipes" class="recipe-products"></div></section>
       </section>
     </section>
   </main>
 
   <dialog id="productAdminDialog" class="product-admin-dialog" aria-labelledby="productAdminTitle">
     <form id="productAdminForm" method="dialog">
-      <div class="product-admin-dialog__header">
-        <div><small>Gestão do cardápio</small><h2 id="productAdminTitle">Novo prato</h2></div>
-        <button id="closeProductAdmin" class="icon-button" type="button" aria-label="Fechar edição">×</button>
-      </div>
-
+      <div class="product-admin-dialog__header"><div><small>Gestão do cardápio</small><h2 id="productAdminTitle">Novo prato</h2></div><button id="closeProductAdmin" class="icon-button" type="button" aria-label="Fechar edição">×</button></div>
       <div class="product-admin-grid">
-        <label class="form-field form-field--full">Nome do prato
-          <input id="catalogDisplayName" name="display_name" required minlength="2" maxlength="120" placeholder="Ex.: Lasanha de Frango" />
-        </label>
-        <label class="form-field">Categoria
-          <input id="catalogCategory" name="category" required minlength="2" maxlength="80" placeholder="Ex.: Lasanhas" />
-        </label>
-        <label class="form-field">Tipo de venda
-          <select id="catalogOrderType" name="order_type" required>
-            <option value="Hoje">Disponível hoje</option>
-            <option value="Encomenda">Encomenda</option>
-          </select>
-        </label>
-        <label class="form-field form-field--full catalog-internal-field">Identificador interno
-          <input id="catalogDishName" name="dish_name" required minlength="2" maxlength="120" placeholder="Gerado automaticamente pelo nome" />
-          <small>É usado apenas pelo sistema e fica travado depois que o prato é criado.</small>
-        </label>
-        <label class="form-field form-field--full">Descrição
-          <textarea id="catalogDescription" name="description" rows="3" maxlength="700" placeholder="Descreva o prato de forma simples e apetitosa."></textarea>
-        </label>
-        <label class="form-field">Serve
-          <input id="catalogServes" name="serves" maxlength="100" placeholder="Ex.: 2 a 3 pessoas" />
-        </label>
-        <label class="form-field">Selo
-          <input id="catalogBadge" name="badge" maxlength="80" placeholder="Ex.: Mais pedido" />
-        </label>
-        <label class="form-field">Preparo
-          <input id="catalogPreparation" name="preparation" maxlength="100" placeholder="Ex.: Disponível hoje" />
-        </label>
-        <label class="form-field">Antecedência
-          <input id="catalogLeadTime" name="lead_time" maxlength="100" placeholder="Ex.: 24h de antecedência" />
-        </label>
-        <label class="form-field form-field--full">URL da foto
-          <input id="catalogImageUrl" name="image_url" type="url" maxlength="1200" placeholder="https://..." />
-        </label>
-        <label class="form-field form-field--full">Ingredientes <small>separe por vírgulas</small>
-          <input id="catalogIngredients" name="ingredients" maxlength="700" placeholder="carne, cebola, queijo..." />
-        </label>
-        <label class="form-field form-field--full">Destaques <small>separe por vírgulas</small>
-          <input id="catalogHighlights" name="highlights" maxlength="700" placeholder="molho caseiro, queijo gratinado..." />
-        </label>
-        <label class="form-field form-field--full">Acompanha <small>separe por vírgulas</small>
-          <input id="catalogAccompaniments" name="accompaniments" maxlength="700" placeholder="arroz, salada, farofa..." />
-        </label>
+        <label class="form-field form-field--full">Nome do prato<input id="catalogDisplayName" name="display_name" required minlength="2" maxlength="120" placeholder="Ex.: Lasanha de Frango" /></label>
+        <label class="form-field">Categoria<input id="catalogCategory" name="category" required minlength="2" maxlength="80" placeholder="Ex.: Lasanhas" /></label>
+        <label class="form-field">Tipo de venda<select id="catalogOrderType" name="order_type" required><option value="Hoje">Disponível hoje</option><option value="Encomenda">Encomenda</option></select></label>
+        <label class="form-field form-field--full catalog-internal-field">Identificador interno<input id="catalogDishName" name="dish_name" required minlength="2" maxlength="120" placeholder="Gerado automaticamente pelo nome" /><small>É usado apenas pelo sistema e fica travado depois que o prato é criado.</small></label>
+        <label class="form-field form-field--full">Descrição<textarea id="catalogDescription" name="description" rows="3" maxlength="700" placeholder="Descreva o prato de forma simples e apetitosa."></textarea></label>
+        <label class="form-field">Serve<input id="catalogServes" name="serves" maxlength="100" placeholder="Ex.: 2 a 3 pessoas" /></label>
+        <label class="form-field">Selo<input id="catalogBadge" name="badge" maxlength="80" placeholder="Ex.: Mais pedido" /></label>
+        <label class="form-field">Preparo<input id="catalogPreparation" name="preparation" maxlength="100" placeholder="Ex.: Disponível hoje" /></label>
+        <label class="form-field">Antecedência<input id="catalogLeadTime" name="lead_time" maxlength="100" placeholder="Ex.: 24h de antecedência" /></label>
+        <label class="form-field form-field--full">URL da foto<input id="catalogImageUrl" name="image_url" type="url" maxlength="1200" placeholder="https://..." /></label>
+        <label class="form-field form-field--full">Ingredientes <small>separe por vírgulas</small><input id="catalogIngredients" name="ingredients" maxlength="700" placeholder="carne, cebola, queijo..." /></label>
+        <label class="form-field form-field--full">Destaques <small>separe por vírgulas</small><input id="catalogHighlights" name="highlights" maxlength="700" placeholder="molho caseiro, queijo gratinado..." /></label>
+        <label class="form-field form-field--full">Acompanha <small>separe por vírgulas</small><input id="catalogAccompaniments" name="accompaniments" maxlength="700" placeholder="arroz, salada, farofa..." /></label>
       </div>
-
-      <fieldset class="catalog-fieldset">
-        <legend>Opções e preços</legend>
-        <div id="catalogOptions" class="catalog-options"></div>
-        <button id="addCatalogOption" class="button button--soft" type="button">+ Adicionar opção</button>
-      </fieldset>
-
-      <fieldset class="catalog-fieldset">
-        <legend>Disponibilidade</legend>
-        <p>Escolha em quais dias o prato pode aparecer. Horário é opcional.</p>
-        <div class="catalog-days">
-          <label><input type="checkbox" name="available_day" value="0" checked />Seg</label>
-          <label><input type="checkbox" name="available_day" value="1" checked />Ter</label>
-          <label><input type="checkbox" name="available_day" value="2" checked />Qua</label>
-          <label><input type="checkbox" name="available_day" value="3" checked />Qui</label>
-          <label><input type="checkbox" name="available_day" value="4" checked />Sex</label>
-          <label><input type="checkbox" name="available_day" value="5" checked />Sáb</label>
-          <label><input type="checkbox" name="available_day" value="6" checked />Dom</label>
-        </div>
-        <div class="product-admin-grid">
-          <label class="form-field">A partir de<input id="catalogAvailableStart" name="available_start" type="time" /></label>
-          <label class="form-field">Até<input id="catalogAvailableEnd" name="available_end" type="time" /></label>
-        </div>
-      </fieldset>
-
-      <div class="catalog-flags">
-        <label><input id="catalogFeatured" name="featured" type="checkbox" /> Mostrar como destaque</label>
-        <label><input id="catalogActive" name="active" type="checkbox" checked /> Prato ativo no cardápio</label>
-      </div>
-
+      <fieldset class="catalog-fieldset"><legend>Opções e preços</legend><div id="catalogOptions" class="catalog-options"></div><button id="addCatalogOption" class="button button--soft" type="button">+ Adicionar opção</button></fieldset>
+      <fieldset class="catalog-fieldset"><legend>Disponibilidade</legend><p>Escolha em quais dias o prato pode aparecer. Horário é opcional.</p><div class="catalog-days"><label><input type="checkbox" name="available_day" value="0" checked />Seg</label><label><input type="checkbox" name="available_day" value="1" checked />Ter</label><label><input type="checkbox" name="available_day" value="2" checked />Qua</label><label><input type="checkbox" name="available_day" value="3" checked />Qui</label><label><input type="checkbox" name="available_day" value="4" checked />Sex</label><label><input type="checkbox" name="available_day" value="5" checked />Sáb</label><label><input type="checkbox" name="available_day" value="6" checked />Dom</label></div><div class="product-admin-grid"><label class="form-field">A partir de<input id="catalogAvailableStart" name="available_start" type="time" /></label><label class="form-field">Até<input id="catalogAvailableEnd" name="available_end" type="time" /></label></div></fieldset>
+      <div class="catalog-flags"><label><input id="catalogFeatured" name="featured" type="checkbox" /> Mostrar como destaque</label><label><input id="catalogActive" name="active" type="checkbox" checked /> Prato ativo no cardápio</label></div>
       <div id="catalogFormError" class="form-error" role="alert" aria-live="assertive" hidden></div>
-      <div class="product-admin-dialog__actions">
-        <button id="cancelProductAdmin" class="button button--ghost" type="button">Cancelar</button>
-        <button id="saveProductAdmin" class="button button--primary" type="submit">Salvar prato</button>
+      <div class="product-admin-dialog__actions"><button id="cancelProductAdmin" class="button button--ghost" type="button">Cancelar</button><button id="saveProductAdmin" class="button button--primary" type="submit">Salvar prato</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="inventoryAdjustDialog" class="inventory-dialog" aria-labelledby="inventoryAdjustTitle">
+    <form id="inventoryAdjustForm" method="dialog">
+      <div class="inventory-dialog__header"><div><small>Movimentação manual</small><h2 id="inventoryAdjustTitle">Ajustar estoque</h2></div><button id="closeInventoryAdjust" class="icon-button" type="button" aria-label="Fechar ajuste">×</button></div>
+      <input id="inventoryAdjustIngredient" type="hidden" />
+      <div class="inventory-dialog__grid">
+        <label class="form-field">Quantidade<input id="inventoryAdjustDelta" type="number" step="1" required placeholder="Ex.: 20 ou -5" /></label>
+        <label class="form-field">Motivo<select id="inventoryAdjustReason"><option>Reposição</option><option>Perda</option><option>Correção</option><option>Uso interno</option></select></label>
+        <label class="form-field" style="grid-column:1/-1">Observação<textarea id="inventoryAdjustNote" maxlength="240" rows="3" placeholder="Opcional"></textarea></label>
       </div>
+      <p class="inventory-note">Use números positivos para entrada e negativos para saída. O sistema nunca permite saldo abaixo de zero.</p>
+      <div id="inventoryAdjustError" class="form-error" role="alert" hidden></div>
+      <div class="inventory-dialog__actions"><button id="cancelInventoryAdjust" class="button button--ghost" type="button">Cancelar</button><button id="saveInventoryAdjust" class="button button--primary" type="submit">Salvar ajuste</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="recipeDialog" class="inventory-dialog" aria-labelledby="recipeTitle">
+    <form id="recipeForm" method="dialog">
+      <div class="inventory-dialog__header"><div><small>Baixa automática</small><h2 id="recipeTitle">Receita de estoque</h2></div><button id="closeRecipeDialog" class="icon-button" type="button" aria-label="Fechar receita">×</button></div>
+      <p class="inventory-note">Informe o consumo da opção-base do prato. Para opções maiores, use o multiplicador abaixo.</p>
+      <div id="recipeRows" class="recipe-rows"></div>
+      <button id="addRecipeItem" class="button button--soft" type="button" style="margin-top:9px">+ Ingrediente</button>
+      <div id="recipeFactors" class="recipe-factors"></div>
+      <div id="recipeError" class="form-error" role="alert" hidden></div>
+      <div class="inventory-dialog__actions"><button id="cancelRecipeDialog" class="button button--ghost" type="button">Cancelar</button><button id="saveRecipe" class="button button--primary" type="submit">Salvar receita</button></div>
     </form>
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="/static/admin.js?v=p2-catalog-1" defer></script>
+  <script src="/static/p2-inventory-admin.js?v=p2-inventory-1" defer></script>
 </body>
 </html>
