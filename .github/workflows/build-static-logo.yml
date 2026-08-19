@@ -3,7 +3,7 @@ name: Build static logo
 on:
   push:
     branches:
-      - agent/p1-maintenance-cleanup
+      - main
     paths:
       - "tools/build_static_logo.py"
       - "assets/logo_parts/**"
@@ -16,10 +16,10 @@ jobs:
   build-logo:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
-          ref: agent/p1-maintenance-cleanup
+          ref: main
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -42,4 +42,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add frontend/assets/logo-sabor-da-casa.webp
           git commit -m "chore: materializar logo aprovada"
-          git push origin HEAD:agent/p1-maintenance-cleanup
+          git push origin HEAD:main
