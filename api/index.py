@@ -5,7 +5,7 @@ from fastapi import FastAPI
 # Mantém uma instância detectável pelo runtime e substitui pelo app real abaixo.
 app = FastAPI()
 
-from src.app import app as real_app
+from src.p1_security import app as real_app
 
 
 class RestoreOriginalPath:
