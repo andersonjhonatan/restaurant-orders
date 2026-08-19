@@ -1,0 +1,45 @@
+name: Build static logo
+
+on:
+  push:
+    branches:
+      - agent/p1-maintenance-cleanup
+    paths:
+      - "tools/build_static_logo.py"
+      - "assets/logo_parts/**"
+      - ".github/workflows/build-static-logo.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-logo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: agent/p1-maintenance-cleanup
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Pillow
+        run: pip install Pillow==11.3.0
+
+      - name: Generate approved logo
+        run: python tools/build_static_logo.py
+
+      - name: Commit generated asset
+        run: |
+          if git diff --quiet -- frontend/assets/logo-sabor-da-casa.webp; then
+            echo "Static logo already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/assets/logo-sabor-da-casa.webp
+          git commit -m "chore: materializar logo aprovada"
+          git push origin HEAD:agent/p1-maintenance-cleanup
