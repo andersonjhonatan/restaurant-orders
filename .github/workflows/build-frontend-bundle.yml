@@ -37,27 +37,31 @@ jobs:
       - name: Generate deterministic bundles
         run: python tools/build_frontend_bundle.py
 
-      - name: Verify generated markers
+      - name: Verify generated assets and HTML switch
         run: |
           python - <<'PY'
           from pathlib import Path
-          from tools.build_frontend_bundle import build_css, build_js
+          from tools.build_frontend_bundle import NEW_CSS_TAG, NEW_JS_TAG, build_css, build_js, bundled_index
 
           css = Path("frontend/site.bundle.css").read_text(encoding="utf-8")
           js = Path("frontend/site.bundle.js").read_text(encoding="utf-8")
+          index = Path("frontend/index.html").read_text(encoding="utf-8")
           assert css == build_css()
           assert js == build_js()
-          print("frontend bundles verified")
+          assert NEW_CSS_TAG in index
+          assert NEW_JS_TAG in index
+          assert bundled_index(index) == index
+          print("frontend bundles and index switch verified")
           PY
 
-      - name: Commit generated bundles
+      - name: Commit generated bundles and asset tags
         run: |
-          if [ -z "$(git status --porcelain -- frontend/site.bundle.css frontend/site.bundle.js)" ]; then
-            echo "Bundles already up to date."
+          if [ -z "$(git status --porcelain -- frontend/site.bundle.css frontend/site.bundle.js frontend/index.html)" ]; then
+            echo "Bundles and index already up to date."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add frontend/site.bundle.css frontend/site.bundle.js
-          git commit -m "chore: materializar bundle do frontend"
+          git add frontend/site.bundle.css frontend/site.bundle.js frontend/index.html
+          git commit -m "chore: ativar bundle do frontend"
           git push origin HEAD:main
