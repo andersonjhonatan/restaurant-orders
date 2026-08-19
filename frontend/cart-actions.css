@@ -61,9 +61,10 @@
 /* Botão para remover tudo de uma vez. */
 .cart-drawer .cart-clear-button {
   position: relative;
-  z-index: 4;
+  isolation: isolate;
+  z-index: 10;
   width: 100%;
-  min-height: 46px;
+  min-height: 48px;
   margin: 10px 0 12px;
   padding: 0 16px;
   display: inline-flex;
@@ -78,20 +79,27 @@
   font-weight: 800;
   letter-spacing: .01em;
   cursor: pointer;
-  pointer-events: auto;
+  pointer-events: auto !important;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Ícone e texto são somente visuais: toda a área pertence ao botão. */
-.cart-drawer .cart-clear-button > * {
-  pointer-events: none !important;
+/* Garante uma única área de hit-test em toda a superfície do botão. */
+.cart-drawer .cart-clear-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  background: transparent;
+  pointer-events: none;
 }
 
-.cart-drawer .cart-clear-button::before,
-.cart-drawer .cart-clear-button::after {
+.cart-drawer .cart-clear-button > * {
+  position: relative;
+  z-index: 1;
   pointer-events: none !important;
 }
 
@@ -111,11 +119,6 @@
   mask-size: contain;
 }
 
-.cart-drawer .cart-clear-button__label {
-  display: inline-block;
-  pointer-events: none !important;
-}
-
 .cart-drawer .cart-clear-button:active {
   transform: scale(.992);
 }
@@ -125,11 +128,133 @@
   outline-offset: 2px;
 }
 
+/* Confirmação personalizada para limpar todos os pedidos. */
+.cart-confirm-overlay {
+  position: fixed;
+  z-index: 220;
+  inset: 0;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  background: rgba(56, 39, 29, .46);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+.cart-confirm-overlay[hidden] {
+  display: none !important;
+}
+
+.cart-confirm-overlay.is-open {
+  opacity: 1;
+}
+
+.cart-confirm-card {
+  width: min(100%, 350px);
+  padding: 24px 20px 20px;
+  text-align: center;
+  border: 1px solid rgba(94, 61, 38, .16);
+  border-radius: 22px;
+  background: #fffaf2;
+  box-shadow: 0 24px 70px rgba(72, 45, 25, .28);
+  transform: translateY(10px) scale(.985);
+  transition: transform .18s ease;
+}
+
+.cart-confirm-overlay.is-open .cart-confirm-card {
+  transform: translateY(0) scale(1);
+}
+
+.cart-confirm-card__icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(185, 74, 28, .09);
+  color: var(--rust2);
+}
+
+.cart-confirm-card__icon::before {
+  content: "";
+  width: 25px;
+  height: 25px;
+  display: block;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+.cart-confirm-card > small {
+  display: block;
+  color: var(--olive2);
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.cart-confirm-card > strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--brown);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.45rem;
+}
+
+.cart-confirm-card > p {
+  margin: 8px auto 18px;
+  max-width: 270px;
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.5;
+}
+
+.cart-confirm-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cart-confirm-card__actions button {
+  min-height: 46px;
+  border-radius: 13px;
+  font-size: .76rem;
+  font-weight: 900;
+  touch-action: manipulation;
+}
+
+.cart-confirm-card__no {
+  border: 1px solid var(--line);
+  background: #fff7e9;
+  color: var(--brown);
+}
+
+.cart-confirm-card__yes {
+  border: 1px solid var(--rust);
+  background: var(--rust);
+  color: #fff;
+  box-shadow: 0 9px 22px rgba(185, 74, 28, .18);
+}
+
 @media (hover: hover) {
   .cart-drawer .cart-item__remove:hover,
   .cart-drawer .cart-clear-button:hover {
     border-color: rgba(146, 54, 19, .28);
     background: rgba(185, 74, 28, .11);
+  }
+
+  .cart-confirm-card__yes:hover {
+    background: var(--rust2);
   }
 }
 
@@ -141,6 +266,10 @@
   }
 
   .cart-drawer .cart-clear-button {
-    min-height: 44px;
+    min-height: 46px;
+  }
+
+  .cart-confirm-card {
+    padding: 22px 18px 18px;
   }
 }
