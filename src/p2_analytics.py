@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Query, Request
-from fastapi.responses import Response
+from fastapi.responses import HTMLResponse, Response
 
 import src.app as legacy_app
 import src.p1_security as p1
@@ -15,6 +15,28 @@ def _reporting_error(exc: Exception):
     if isinstance(exc, ReportingUnavailable):
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     raise HTTPException(status_code=500, detail="Não foi possível gerar o relatório agora.") from exc
+
+
+def _analytics_admin_page():
+    base = legacy_app._page_with_transparent_brand("admin.html")
+    html = base.body.decode("utf-8")
+    css_tag = '<link rel="stylesheet" href="/static/p2-analytics-admin.css?v=p2-analytics-1" />'
+    js_tag = '<script src="/static/p2-analytics-admin.js?v=p2-analytics-1" defer></script>'
+    if css_tag not in html:
+        html = html.replace("</head>", f"  {css_tag}\n</head>", 1)
+    if js_tag not in html:
+        html = html.replace("</body>", f"  {js_tag}\n</body>", 1)
+    response = HTMLResponse(html, headers={"Cache-Control": "no-store, max-age=0", "Pragma": "no-cache"})
+    return p1._security_headers(response)
+
+
+@app.middleware("http")
+async def p2_analytics_admin_page_middleware(request: Request, call_next):
+    # Só modifica a página do painel para carregar a camada de relatórios.
+    # Checkout, home, cardápio e APIs existentes seguem pelo fluxo P0/P1/P2 normal.
+    if request.url.path == "/admin" and request.method == "GET":
+        return _analytics_admin_page()
+    return await call_next(request)
 
 
 @app.get("/api/admin/analytics", include_in_schema=False)
