@@ -26,15 +26,27 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Pillow
-        run: pip install Pillow==11.3.0
+      - name: Install project dependencies
+        run: pip install -r requirements.txt pytest==7.2.1 httpx==0.23.3
 
       - name: Generate approved logo
         run: python tools/build_static_logo.py
 
+      - name: Verify exact approved bytes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from src.app import _brand_logo_bytes
+
+          generated = Path("frontend/assets/logo-sabor-da-casa.webp").read_bytes()
+          current = _brand_logo_bytes()
+          assert generated == current, "A logo gerada difere da versão aprovada."
+          print(f"verified {len(generated)} exact bytes")
+          PY
+
       - name: Commit generated asset
         run: |
-          if git diff --quiet -- frontend/assets/logo-sabor-da-casa.webp; then
+          if [ -z "$(git status --porcelain -- frontend/assets/logo-sabor-da-casa.webp)" ]; then
             echo "Static logo already up to date."
             exit 0
           fi
