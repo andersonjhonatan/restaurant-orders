@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 import src.app as legacy_app
@@ -26,6 +28,22 @@ def test_security_headers_and_privacy_page(monkeypatch):
     privacy = client.get("/privacidade")
     assert privacy.status_code == 200
     assert "Como cuidamos dos seus dados" in privacy.text
+
+
+def test_static_logo_is_exact_approved_logo(monkeypatch):
+    client = client_with_auth(monkeypatch)
+    static_file = Path("frontend/assets/logo-sabor-da-casa.webp").read_bytes()
+    legacy_bytes = legacy_app._brand_logo_bytes()
+
+    assert static_file == legacy_bytes
+    assert len(static_file) == 48882
+
+    response = client.get("/brand/logo?v=logo-vanuza-23")
+    assert response.status_code == 200
+    assert response.content == static_file
+    assert response.headers["content-type"].startswith("image/webp")
+    assert response.headers["x-sabor-logo"] == "static-approved"
+    assert response.headers["cache-control"] == "public, max-age=31536000, immutable"
 
 
 def test_direct_admin_secret_header_is_not_accepted(monkeypatch):
