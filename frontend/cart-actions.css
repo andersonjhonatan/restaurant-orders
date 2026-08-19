@@ -51,6 +51,7 @@
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
+  pointer-events: none;
 }
 
 .cart-drawer .cart-item__remove:active {
@@ -59,6 +60,8 @@
 
 /* Botão para remover tudo de uma vez. */
 .cart-drawer .cart-clear-button {
+  position: relative;
+  z-index: 4;
   width: 100%;
   min-height: 46px;
   margin: 10px 0 12px;
@@ -74,12 +77,29 @@
   font-size: .78rem;
   font-weight: 800;
   letter-spacing: .01em;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.cart-drawer .cart-clear-button > span {
+/* Ícone e texto são somente visuais: toda a área pertence ao botão. */
+.cart-drawer .cart-clear-button > * {
+  pointer-events: none !important;
+}
+
+.cart-drawer .cart-clear-button::before,
+.cart-drawer .cart-clear-button::after {
+  pointer-events: none !important;
+}
+
+.cart-drawer .cart-clear-button > span:first-child {
   width: 18px;
   height: 18px;
   display: block;
+  flex: 0 0 18px;
   background-color: currentColor;
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -89,6 +109,20 @@
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
+}
+
+.cart-drawer .cart-clear-button__label {
+  display: inline-block;
+  pointer-events: none !important;
+}
+
+.cart-drawer .cart-clear-button:active {
+  transform: scale(.992);
+}
+
+.cart-drawer .cart-clear-button:focus-visible {
+  outline: 3px solid rgba(185, 74, 28, .18);
+  outline-offset: 2px;
 }
 
 @media (hover: hover) {
