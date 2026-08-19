@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css?v=order-flow-14" />
-  <link rel="stylesheet" href="/static/admin.css?v=order-flow-14" />
+  <link rel="stylesheet" href="/static/admin.css?v=p2-catalog-1" />
 </head>
 <body class="admin-body">
   <header class="admin-header">
@@ -41,9 +41,9 @@
     <section id="dashboard" class="dashboard" hidden>
       <div class="dashboard-heading">
         <div>
-          <span class="eyebrow"><span></span> gestão de pedidos</span>
+          <span class="eyebrow"><span></span> gestão do Sabor da Casa</span>
           <h1>Olá, Vanuza 👋</h1>
-          <p>Pedidos do cardápio do dia já entram confirmados. Somente as encomendas precisam de aprovação.</p>
+          <p>Pedidos do cardápio do dia já entram confirmados. Somente as encomendas precisam ser aceitas ou recusadas.</p>
         </div>
         <div class="dashboard-actions">
           <button id="refreshOrders" class="button button--soft" type="button">Atualizar</button>
@@ -51,25 +51,143 @@
         </div>
       </div>
 
-      <div class="stats-grid">
-        <article><small>Total de pedidos</small><strong id="statTotal">0</strong><span>registrados</span></article>
-        <article><small>Encomendas aguardando</small><strong id="statNew">0</strong><span>precisam de resposta</span></article>
-        <article><small>Em preparo</small><strong id="statPreparing">0</strong><span>na cozinha</span></article>
-        <article><small>Concluídos</small><strong id="statDone">0</strong><span>finalizados</span></article>
-      </div>
+      <nav class="admin-tabs" aria-label="Áreas do painel">
+        <button class="is-active" type="button" data-admin-tab="orders">Pedidos</button>
+        <button type="button" data-admin-tab="products">Cardápio</button>
+      </nav>
 
-      <div class="orders-toolbar">
-        <label><span>Filtrar por status</span><select id="statusFilter"><option value="">Todos os pedidos e encomendas</option></select></label>
-        <span id="lastUpdated" class="last-updated" aria-live="polite"></span>
-      </div>
+      <section id="ordersPanel" class="admin-panel">
+        <div class="stats-grid">
+          <article><small>Total de pedidos</small><strong id="statTotal">0</strong><span>registrados</span></article>
+          <article><small>Encomendas aguardando</small><strong id="statNew">0</strong><span>precisam de resposta</span></article>
+          <article><small>Em preparo</small><strong id="statPreparing">0</strong><span>na cozinha</span></article>
+          <article><small>Concluídos</small><strong id="statDone">0</strong><span>finalizados</span></article>
+        </div>
 
-      <div id="ordersLoading" class="menu-loading" aria-live="polite" hidden><span></span> Carregando pedidos...</div>
-      <div id="ordersList" class="orders-list"></div>
-      <div id="ordersEmpty" class="menu-empty" hidden>Nenhum pedido encontrado.</div>
+        <div class="orders-toolbar">
+          <label><span>Filtrar por status</span><select id="statusFilter"><option value="">Todos os pedidos e encomendas</option></select></label>
+          <span id="lastUpdated" class="last-updated" aria-live="polite"></span>
+        </div>
+
+        <div id="ordersLoading" class="menu-loading" aria-live="polite" hidden><span></span> Carregando pedidos...</div>
+        <div id="ordersList" class="orders-list"></div>
+        <div id="ordersEmpty" class="menu-empty" hidden>Nenhum pedido encontrado.</div>
+      </section>
+
+      <section id="productsPanel" class="admin-panel catalog-panel" hidden>
+        <div class="catalog-heading">
+          <div>
+            <span class="eyebrow"><span></span> catálogo</span>
+            <h2>Cardápio</h2>
+            <p>Altere pratos, preços, categorias e disponibilidade sem precisar modificar o site.</p>
+          </div>
+          <button id="newProductButton" class="button button--primary" type="button">+ Novo prato</button>
+        </div>
+
+        <div class="catalog-summary" aria-live="polite">
+          <span><strong id="productsTotal">0</strong> pratos</span>
+          <span><strong id="productsActive">0</strong> ativos</span>
+          <span><strong id="productsPreorder">0</strong> encomendas</span>
+        </div>
+
+        <div id="productsLoading" class="menu-loading" aria-live="polite" hidden><span></span> Carregando cardápio...</div>
+        <div id="productsList" class="products-list"></div>
+        <div id="productsEmpty" class="menu-empty" hidden>Nenhum prato cadastrado.</div>
+      </section>
     </section>
   </main>
 
+  <dialog id="productAdminDialog" class="product-admin-dialog" aria-labelledby="productAdminTitle">
+    <form id="productAdminForm" method="dialog">
+      <div class="product-admin-dialog__header">
+        <div><small>Gestão do cardápio</small><h2 id="productAdminTitle">Novo prato</h2></div>
+        <button id="closeProductAdmin" class="icon-button" type="button" aria-label="Fechar edição">×</button>
+      </div>
+
+      <div class="product-admin-grid">
+        <label class="form-field form-field--full">Nome do prato
+          <input id="catalogDisplayName" name="display_name" required minlength="2" maxlength="120" placeholder="Ex.: Lasanha de Frango" />
+        </label>
+        <label class="form-field">Categoria
+          <input id="catalogCategory" name="category" required minlength="2" maxlength="80" placeholder="Ex.: Lasanhas" />
+        </label>
+        <label class="form-field">Tipo de venda
+          <select id="catalogOrderType" name="order_type" required>
+            <option value="Hoje">Disponível hoje</option>
+            <option value="Encomenda">Encomenda</option>
+          </select>
+        </label>
+        <label class="form-field form-field--full catalog-internal-field">Identificador interno
+          <input id="catalogDishName" name="dish_name" required minlength="2" maxlength="120" placeholder="Gerado automaticamente pelo nome" />
+          <small>É usado apenas pelo sistema e fica travado depois que o prato é criado.</small>
+        </label>
+        <label class="form-field form-field--full">Descrição
+          <textarea id="catalogDescription" name="description" rows="3" maxlength="700" placeholder="Descreva o prato de forma simples e apetitosa."></textarea>
+        </label>
+        <label class="form-field">Serve
+          <input id="catalogServes" name="serves" maxlength="100" placeholder="Ex.: 2 a 3 pessoas" />
+        </label>
+        <label class="form-field">Selo
+          <input id="catalogBadge" name="badge" maxlength="80" placeholder="Ex.: Mais pedido" />
+        </label>
+        <label class="form-field">Preparo
+          <input id="catalogPreparation" name="preparation" maxlength="100" placeholder="Ex.: Disponível hoje" />
+        </label>
+        <label class="form-field">Antecedência
+          <input id="catalogLeadTime" name="lead_time" maxlength="100" placeholder="Ex.: 24h de antecedência" />
+        </label>
+        <label class="form-field form-field--full">URL da foto
+          <input id="catalogImageUrl" name="image_url" type="url" maxlength="1200" placeholder="https://..." />
+        </label>
+        <label class="form-field form-field--full">Ingredientes <small>separe por vírgulas</small>
+          <input id="catalogIngredients" name="ingredients" maxlength="700" placeholder="carne, cebola, queijo..." />
+        </label>
+        <label class="form-field form-field--full">Destaques <small>separe por vírgulas</small>
+          <input id="catalogHighlights" name="highlights" maxlength="700" placeholder="molho caseiro, queijo gratinado..." />
+        </label>
+        <label class="form-field form-field--full">Acompanha <small>separe por vírgulas</small>
+          <input id="catalogAccompaniments" name="accompaniments" maxlength="700" placeholder="arroz, salada, farofa..." />
+        </label>
+      </div>
+
+      <fieldset class="catalog-fieldset">
+        <legend>Opções e preços</legend>
+        <div id="catalogOptions" class="catalog-options"></div>
+        <button id="addCatalogOption" class="button button--soft" type="button">+ Adicionar opção</button>
+      </fieldset>
+
+      <fieldset class="catalog-fieldset">
+        <legend>Disponibilidade</legend>
+        <p>Escolha em quais dias o prato pode aparecer. Horário é opcional.</p>
+        <div class="catalog-days">
+          <label><input type="checkbox" name="available_day" value="0" checked />Seg</label>
+          <label><input type="checkbox" name="available_day" value="1" checked />Ter</label>
+          <label><input type="checkbox" name="available_day" value="2" checked />Qua</label>
+          <label><input type="checkbox" name="available_day" value="3" checked />Qui</label>
+          <label><input type="checkbox" name="available_day" value="4" checked />Sex</label>
+          <label><input type="checkbox" name="available_day" value="5" checked />Sáb</label>
+          <label><input type="checkbox" name="available_day" value="6" checked />Dom</label>
+        </div>
+        <div class="product-admin-grid">
+          <label class="form-field">A partir de<input id="catalogAvailableStart" name="available_start" type="time" /></label>
+          <label class="form-field">Até<input id="catalogAvailableEnd" name="available_end" type="time" /></label>
+        </div>
+      </fieldset>
+
+      <div class="catalog-flags">
+        <label><input id="catalogFeatured" name="featured" type="checkbox" /> Mostrar como destaque</label>
+        <label><input id="catalogActive" name="active" type="checkbox" checked /> Prato ativo no cardápio</label>
+      </div>
+
+      <div id="catalogFormError" class="form-error" role="alert" aria-live="assertive" hidden></div>
+      <div class="product-admin-dialog__actions">
+        <button id="cancelProductAdmin" class="button button--ghost" type="button">Cancelar</button>
+        <button id="saveProductAdmin" class="button button--primary" type="submit">Salvar prato</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="/static/admin.js?v=p1-security-1" defer></script>
+  <script src="/static/admin.js?v=p2-catalog-1" defer></script>
 </body>
 </html>
