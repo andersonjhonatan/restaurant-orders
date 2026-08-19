@@ -46,7 +46,7 @@ def test_order_store_persists_and_updates_status(tmp_path):
     )
 
     assert created["id"] == 1
-    assert created["status"] == "Novo"
+    assert created["status"] == "Aguardando aprovação"
     assert store.list_orders()[0]["customer_name"] == "Cliente Teste"
 
     updated = store.update_status(1, "Em preparo")
