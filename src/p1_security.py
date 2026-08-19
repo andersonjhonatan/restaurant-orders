@@ -1,9 +1,10 @@
 import os
-from typing import Optional
+import re
+from typing import List, Optional
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 import src.app as legacy_app
 from src.services.admin_auth import (
@@ -11,6 +12,14 @@ from src.services.admin_auth import (
     AdminAuthError,
     AdminInvalidCredentials,
     AdminRateLimited,
+)
+from src.services.product_catalog import (
+    CatalogUnavailable,
+    ManagedMenuBuilder,
+    ProductAlreadyExists,
+    ProductCatalog,
+    ProductNotFound,
+    canonical_dish_name,
 )
 
 
@@ -42,10 +51,92 @@ admin_auth = AdminAuth(
     attempt_window_seconds=ADMIN_LOGIN_WINDOW,
 )
 
+# P2: o cardápio público passa a ler a apresentação/preços do catálogo
+# persistido. Receitas e estoque continuam delegados ao builder legado até o
+# bloco específico de inventário do P2.
+product_catalog = ProductCatalog(legacy_app.DATABASE_URL)
+if not isinstance(legacy_app.menu_builder, ManagedMenuBuilder):
+    legacy_app.menu_builder = ManagedMenuBuilder(legacy_app.menu_builder, product_catalog)
+
 
 class AdminLoginInput(BaseModel):
     username: str = Field(min_length=2, max_length=80)
     password: str = Field(min_length=4, max_length=200)
+
+
+class ProductOptionInput(BaseModel):
+    id: str = Field(min_length=1, max_length=60, regex=r"^[a-z0-9][a-z0-9_-]*$")
+    label: str = Field(min_length=1, max_length=80)
+    serves: str = Field(default="", max_length=100)
+    price: float = Field(gt=0, le=10000)
+
+
+class ProductInput(BaseModel):
+    dish_name: str = Field(min_length=2, max_length=120)
+    display_name: str = Field(min_length=2, max_length=120)
+    category: str = Field(min_length=2, max_length=80)
+    order_type: str = Field(regex=r"^(Hoje|Encomenda)$")
+    description: str = Field(default="", max_length=700)
+    serves: str = Field(default="", max_length=100)
+    preparation: str = Field(default="", max_length=100)
+    lead_time: str = Field(default="", max_length=100)
+    badge: str = Field(default="", max_length=80)
+    featured: bool = False
+    image_url: str = Field(default="", max_length=1200)
+    ingredients: List[str] = Field(default_factory=list)
+    restrictions: List[str] = Field(default_factory=list)
+    highlights: List[str] = Field(default_factory=list)
+    accompaniments: List[str] = Field(default_factory=list)
+    options: List[ProductOptionInput]
+    active: bool = True
+    sort_order: int = Field(default=0, ge=0, le=100000)
+    available_days: List[int] = Field(default_factory=lambda: list(range(7)))
+    available_start: str = Field(default="", max_length=5)
+    available_end: str = Field(default="", max_length=5)
+
+    @validator("dish_name")
+    def normalize_name(cls, value):
+        normalized = canonical_dish_name(value)
+        if len(normalized) < 2:
+            raise ValueError("Informe um identificador válido para o prato.")
+        return normalized
+
+    @validator("ingredients", "restrictions", "highlights", "accompaniments", pre=True)
+    def clean_text_lists(cls, value):
+        if value is None:
+            return []
+        return [str(item).strip() for item in value if str(item).strip()][:40]
+
+    @validator("available_days")
+    def validate_days(cls, value):
+        days = sorted(set(value or list(range(7))))
+        if any(day < 0 or day > 6 for day in days):
+            raise ValueError("Os dias de disponibilidade devem ficar entre 0 e 6.")
+        return days
+
+    @validator("available_start", "available_end")
+    def validate_time(cls, value):
+        value = value.strip()
+        if value and not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", value):
+            raise ValueError("Informe horários no formato HH:MM.")
+        return value
+
+    @validator("options")
+    def validate_options(cls, value):
+        if not value:
+            raise ValueError("Cadastre pelo menos uma opção de preço.")
+        ids = [item.id for item in value]
+        if len(ids) != len(set(ids)):
+            raise ValueError("As opções de preço precisam de identificadores diferentes.")
+        return value
+
+
+class ProductActiveInput(BaseModel):
+    active: bool
+
+
+class ProductOrderInput(BaseModel):
+    dish_names: List[str] = Field(min_items=1, max_items=200)
 
 
 def _session_token(request: Request) -> str:
@@ -62,6 +153,34 @@ def _require_ajax_admin_request(request: Request) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Requisição administrativa inválida.",
         )
+
+
+def _require_admin_session(request: Request, mutation: bool = False) -> str:
+    if mutation:
+        _require_ajax_admin_request(request)
+    username = admin_auth.validate(_session_token(request), user_agent=_user_agent(request))
+    if not username:
+        raise HTTPException(
+            status_code=401,
+            detail="Sessão administrativa inválida ou expirada.",
+        )
+    return username
+
+
+def _base_catalog_seed():
+    builder = legacy_app.menu_builder
+    base_builder = builder.base_builder if isinstance(builder, ManagedMenuBuilder) else builder
+    return base_builder.get_main_menu(restriction=None)
+
+
+def _catalog_error(exc: Exception):
+    if isinstance(exc, ProductNotFound):
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if isinstance(exc, ProductAlreadyExists):
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if isinstance(exc, CatalogUnavailable):
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 def _security_headers(response):
@@ -115,9 +234,6 @@ def _static_logo_response():
 async def p1_security_middleware(request: Request, call_next):
     path = request.url.path
 
-    # A marca aprovada é servida diretamente do arquivo que foi validado
-    # byte a byte contra a versão anterior. Evita reprocessamento com Pillow
-    # em cada nova instância serverless e mantém a URL pública compatível.
     if path in {"/brand/logo", "/favicon.ico", "/favicon.svg", "/favicon.png"}:
         return _static_logo_response()
 
@@ -238,6 +354,62 @@ def admin_logout(request: Request):
         samesite="strict",
     )
     return response
+
+
+@app.get("/api/admin/products", include_in_schema=False)
+def admin_products(request: Request):
+    _require_admin_session(request)
+    try:
+        products = product_catalog.list_admin_products(_base_catalog_seed())
+        return {"products": products, "count": len(products)}
+    except Exception as exc:
+        _catalog_error(exc)
+
+
+@app.post("/api/admin/products", include_in_schema=False, status_code=201)
+def admin_create_product(payload: ProductInput, request: Request):
+    _require_admin_session(request, mutation=True)
+    try:
+        product = product_catalog.create_product(payload.dict())
+        return {"product": product}
+    except Exception as exc:
+        _catalog_error(exc)
+
+
+@app.put("/api/admin/products/{dish_name}", include_in_schema=False)
+def admin_update_product(dish_name: str, payload: ProductInput, request: Request):
+    _require_admin_session(request, mutation=True)
+    target = canonical_dish_name(dish_name)
+    if payload.dish_name != target:
+        raise HTTPException(
+            status_code=422,
+            detail="O identificador interno do prato não pode ser alterado durante a edição.",
+        )
+    try:
+        product = product_catalog.update_product(target, payload.dict())
+        return {"product": product}
+    except Exception as exc:
+        _catalog_error(exc)
+
+
+@app.patch("/api/admin/products/{dish_name}/active", include_in_schema=False)
+def admin_set_product_active(dish_name: str, payload: ProductActiveInput, request: Request):
+    _require_admin_session(request, mutation=True)
+    try:
+        product = product_catalog.set_active(dish_name, payload.active)
+        return {"product": product}
+    except Exception as exc:
+        _catalog_error(exc)
+
+
+@app.post("/api/admin/products/reorder", include_in_schema=False)
+def admin_reorder_products(payload: ProductOrderInput, request: Request):
+    _require_admin_session(request, mutation=True)
+    try:
+        products = product_catalog.reorder(payload.dish_names)
+        return {"products": products}
+    except Exception as exc:
+        _catalog_error(exc)
 
 
 @app.get("/privacidade", include_in_schema=False)
